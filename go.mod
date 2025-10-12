@@ -3,7 +3,7 @@ module github.com/dihedron/bootstrap
 go 1.25.1
 
 require (
-	github.com/go-git/go-git/v6 v6.0.0-20251007095815-706a889a010e
+	github.com/go-git/go-git/v6 v6.0.0-20251009132922-75a182125145
 	github.com/jessevdk/go-flags v1.6.1
 )
 
@@ -14,13 +14,13 @@ require (
 	github.com/cyphar/filepath-securejoin v0.5.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg/v2 v2.0.2 // indirect
-	github.com/go-git/go-billy/v6 v6.0.0-20251005200456-06ff513de689 // indirect
+	github.com/go-git/go-billy/v6 v6.0.0-20251008191739-bf4aa134545f // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/kevinburke/ssh_config v1.4.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/pjbgf/sha1cd v0.5.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
-	golang.org/x/crypto v0.42.0 // indirect
-	golang.org/x/net v0.44.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
 )
