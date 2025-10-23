@@ -8,7 +8,7 @@
 
 version: 2
 
-project_name: bootstrap
+project_name: repo
 
 env:
   - CGO_ENABLED=0
@@ -21,8 +21,8 @@ before:
     - go generate ./...
 
 builds:
-  - id: bootstrap
-    binary: bootstrap
+  - id: repo
+    binary: repo
     main: .
     goos:
       - linux
@@ -65,7 +65,7 @@ builds:
     mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:
-  - id: bootstrap
+  - id: repo
     formats:
       - tar.gz
     name_template: >-
@@ -89,7 +89,7 @@ upx:
     enabled: false
 
     # Filter by build ID.
-    ids: [bootstrap]
+    ids: [repo]
 
     # Filter by GOOS.
     goos: [linux, windows]
@@ -111,8 +111,8 @@ upx:
     #brute: true
 
 nfpms:
-  - id: bootstrap
-    package_name: bootstrap
+  - id: repo
+    package_name: repo
     homepage: "https://github.com/dihedron"
     maintainer: "Andrea Funtò <dihedron.dev@gmail.com>"
     description: |
@@ -127,7 +127,7 @@ nfpms:
       - deb
       - apk
     ids:
-      - bootstrap
+      - repo
     contents:
       - src: ./{{.ProjectName}}.conf
         dst: /etc/{{.ProjectName}}.conf
@@ -143,12 +143,12 @@ nfpms:
 # MSI packaging is a GoReleaser Pro feature.
 # If you have GoReleaser Pro, you can uncomment the following section.
 # packagers:
-#   - id: bootstrap-msi
+#   - id: repo-msi
 #     name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
 #     builds:
-#       - bootstrap
+#       - repo
 #     extra_files:
-#       - src: ./bootstrap.conf
+#       - src: ./repo.conf
 #     upgrade_code: "53c6e944-a35a-4e67-b3b9-8c9e7a8a0a3a"
 #     msi:
 #       component_id: Netcheck

@@ -1,4 +1,4 @@
-module github.com/dihedron/bootstrap
+module github.com/dihedron/repo
 
 go 1.25.1
 

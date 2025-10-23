@@ -1,4 +1,4 @@
-package apply
+package bootstrap
 
 import (
 	"bufio"
@@ -6,18 +6,18 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/dihedron/bootstrap/command/base"
-	"github.com/dihedron/bootstrap/repository"
+	"github.com/dihedron/repo/command/base"
+	"github.com/dihedron/repo/repository"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
-type Apply struct {
+type Bootstrap struct {
 	base.Command
 }
 
-func (cmd *Apply) Execute(args []string) error {
-	slog.Info("executing Apply command")
+func (cmd *Bootstrap) Execute(args []string) error {
+	slog.Info("executing Bootstrap command")
 
 	var options []repository.Option
 

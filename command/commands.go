@@ -1,16 +1,16 @@
 package command
 
 import (
-	"github.com/dihedron/bootstrap/command/apply"
-	"github.com/dihedron/bootstrap/command/show"
-	"github.com/dihedron/bootstrap/command/version"
+	"github.com/dihedron/repo/command/bootstrap"
+	"github.com/dihedron/repo/command/show"
+	"github.com/dihedron/repo/command/version"
 )
 
 // Commands is the set of root command groups.
 type Commands struct {
-	// Apply runs the Apply command
+	// Bootstrap runs the Bootstrap command
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
-	Apply apply.Apply `command:"apply" alias:"ap" alias:"a" description:"Bootstrap the project."`
+	Bootstrap bootstrap.Bootstrap `command:"bootstrap" alias:"boot" alias:"b" description:"Bootstrap the repository"`
 	// Show runs the Show command which displays the settings needed for the specific project.
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
 	Show show.Show `command:"show" alias:"sh" alias:"s" description:"Show the necessary settings"`

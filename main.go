@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/dihedron/bootstrap/command"
+	"github.com/dihedron/repo/command"
 	"github.com/jessevdk/go-flags"
 )
 
