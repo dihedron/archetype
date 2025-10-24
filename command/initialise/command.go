@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"log/slog"
-	"os"
-	"regexp"
 
 	"github.com/dihedron/archetype/command/base"
 	"github.com/dihedron/archetype/repository"
@@ -31,57 +29,25 @@ func (cmd *Init) Execute(args []string) error {
 	}
 	//options = append(options, repository.WithProxyFromEnv())
 
+	// 1. create an in-memory clone of the remote archetypal repository
 	repo := repository.New(
 		cmd.Repository,
 		options...,
 	)
 	repo.Clone()
 
-	longCommit := regexp.MustCompile(`(?m)^[0-9a-fA-F]{40}$`)
-	shortCommit := regexp.MustCompile(`(?m)^[0-9a-fA-F]{7}$`)
-	//var reference *plumbing.Reference
-	var commit *object.Commit
-	if cmd.Tag == "latest" || cmd.Tag == "HEAD" {
-		// ... retrieving the branch being pointed by HEAD
-		slog.Debug("retrieving reference to latest (HEAD)")
-		reference, err := repo.Head()
-		if err != nil {
-			slog.Error("failed to get latest", "error", err)
-			return err
-		}
-		fmt.Println("latest points to:", reference.Name())
-		commit, err = repo.CommitFromReference(reference)
-		if err != nil {
-			slog.Error("failed to get commit for reference", "reference", reference.Name(), "error", err)
-			return err
-		}
-		slog.Debug("retrieved commit for reference", "reference", reference.Name(), "hash", commit.Hash.String())
-	} else if longCommit.MatchString(cmd.Tag) || shortCommit.MatchString(cmd.Tag) {
-		slog.Debug("retrieving commit for specific hash", "hash", cmd.Tag)
-		var err error
-		commit, err = repo.Commit(cmd.Tag)
-		if err != nil {
-			slog.Error("failed to get commit", "error", err)
-			return err
-		}
-		slog.Debug("retrieved commit for hash", "hash", cmd.Tag, "commit hash", commit.Hash.String())
-	} else {
-		var err error
-		slog.Debug("retrieving reference to tag", "tag", cmd.Tag)
-		reference, err := repo.Tag(cmd.Tag)
-		if err != nil {
-			slog.Error("failed to get tag", "error", err)
-			os.Exit(1)
-		}
-		commit, err = repo.CommitFromReference(reference)
-		if err != nil {
-			slog.Error("failed to get commit for tag reference", "tag", cmd.Tag, "reference", reference.Name(), "error", err)
-			return err
-		}
-		slog.Debug("retrieved commit for tag reference", "tag", cmd.Tag, "reference", reference.Name(), "hash", commit.Hash.String())
+	commit, err := repo.Commit(cmd.Tag)
+	if err != nil {
+		slog.Error("failed to get commit for input tag", "tag", cmd.Tag, "error", err)
+		return err
 	}
 
+	// 4. load the parameters (TODO)
+
+	// 5. loop over the files and perform some processing
 	repo.ForEachFile(commit, visitFile)
+
+	// 6. launch the script for post processing (TODO)
 
 	return nil
 }

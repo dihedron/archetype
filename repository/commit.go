@@ -4,13 +4,66 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"regexp"
 
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
+func (r *Repository) Commit(tag string) (*object.Commit, error) {
+
+	// 1. select the right commit (based on tag or hash, in long or short form)
+	longCommit := regexp.MustCompile(`(?m)^[0-9a-fA-F]{40}$`)
+	shortCommit := regexp.MustCompile(`(?m)^[0-9a-fA-F]{7}$`)
+
+	var commit *object.Commit
+	if tag == "latest" || tag == "HEAD" {
+		// 2a. retrieve the HEAD reference
+		slog.Debug("retrieving reference to latest (HEAD)")
+		reference, err := r.Head()
+		if err != nil {
+			slog.Error("failed to get latest (HEAD)", "error", err)
+			return nil, err
+		}
+		// 2b. get the commit referred to by the reference
+		commit, err = r.CommitFromReference(reference)
+		if err != nil {
+			slog.Error("failed to get commit for reference", "reference", reference.Name(), "error", err)
+			return nil, err
+		}
+		slog.Debug("retrieved commit for reference", "reference", reference.Name(), "hash", commit.Hash.String())
+	} else if longCommit.MatchString(tag) || shortCommit.MatchString(tag) {
+		// 2. retrieve the commit given the hash, in either short or long
+		// form); this is resolved internally by the Commit() method.
+		slog.Debug("retrieving commit for specific hash", "hash", tag)
+		var err error
+		commit, err = r.CommitFromHash(tag)
+		if err != nil {
+			slog.Error("failed to get commit", "error", err)
+			return nil, err
+		}
+		slog.Debug("retrieved commit for hash", "hash", tag, "commit hash", commit.Hash.String())
+	} else {
+		// 2a. retrieve the tag reference
+		slog.Debug("retrieving reference to tag", "tag", tag)
+		reference, err := r.Tag(tag)
+		if err != nil {
+			slog.Error("failed to get tag", "error", err)
+			return nil, err
+		}
+		// 2b. get the commit referred to by the tag reference
+		commit, err = r.CommitFromReference(reference)
+		if err != nil {
+			slog.Error("failed to get commit for tag reference", "tag", tag, "reference", reference.Name(), "error", err)
+			return nil, err
+		}
+		slog.Debug("retrieved commit for tag reference", "tag", tag, "reference", reference.Name(), "hash", commit.Hash.String())
+	}
+	return commit, nil
+}
+
 // Commit retrieves a commit object by its hash.
-func (r *Repository) Commit(hash string) (*object.Commit, error) {
+func (r *Repository) CommitFromHash(hash string) (*object.Commit, error) {
 	if r == nil || r.repository == nil {
 		slog.Error("repository not initialized")
 		return nil, errors.New("repository not initialized")

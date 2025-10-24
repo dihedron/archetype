@@ -1,20 +1,17 @@
 package repository
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
-// func (r *Repository) Files(reference *plumbing.Reference) ([]*object.File, error) {
 func (r *Repository) Files(commit *object.Commit) ([]*object.File, error) {
-	// ... retrieving the commit object
-	// commit, err := r.repository.CommitObject(reference.Hash())
-	// if err != nil {
-	// 	slog.Error("error getting commit object for reference", "reference", reference.Name(), "error", err)
-	// 	return nil, err
-	// }
-	// fmt.Println(commit)
+
+	if commit == nil {
+		return nil, fmt.Errorf("invalid commit")
+	}
 
 	// ... retrieve the tree from the commit
 	tree, err := commit.Tree()
