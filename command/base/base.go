@@ -11,7 +11,7 @@ import (
 // This is the set of common command line options.
 type Command struct {
 	Repository string `short:"r" long:"repository" description:"The Git repository to clone" required:"true"`
-	Tag        string `short:"t" long:"tag" description:"The tag to clone" optional:"true" default:"HEAD"`
+	Tag        string `short:"t" long:"tag" description:"The tag or commit to clone" optional:"true" default:"latest"`
 	Auth       struct {
 		Token             *string `short:"T" long:"token" description:"The personal access token for authentication" optional:"true"`
 		Username          *string `short:"U" long:"username" description:"The username for authentication" optional:"true"`

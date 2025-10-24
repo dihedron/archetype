@@ -2,6 +2,7 @@ package repository
 
 import (
 	"log/slog"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -126,6 +127,63 @@ func WithProxy(proxyURL string, username string, password string) Option {
 			URL:      proxyURL,
 			Username: username,
 			Password: password,
+		}
+	}
+}
+
+// WithProxyFromEnv is a helper to set up a proxy for HTTP/HTTPS transport
+// by honouring the HTTP_PROXY and/or HTTPS_PROXY variables.
+func WithProxyFromEnv() Option {
+	return func(repository *Repository) {
+		slog.Info("setting up proxy for git transport", "repository", repository.address)
+		var (
+			proxyURL string
+			ok       bool
+		)
+		if strings.HasPrefix(repository.address, "https") {
+			slog.Debug("retrieving proxy for HTTPs address")
+			if proxyURL, ok = os.LookupEnv("HTTPS_PROXY"); !ok {
+				proxyURL, ok = os.LookupEnv("https_proxy")
+				if !ok {
+					slog.Debug("no proxy")
+				}
+			}
+		} else if strings.HasPrefix(repository.address, "http") {
+			slog.Debug("retrieving proxy for HTTP address")
+			if proxyURL, ok = os.LookupEnv("HTTP_PROXY"); !ok {
+				proxyURL, ok = os.LookupEnv("http_proxy")
+				if !ok {
+					slog.Debug("no proxy")
+				}
+			}
+		}
+		if proxyURL == "" {
+			slog.Debug("no proxy available in environment")
+			return
+		}
+		slog.Debug("retrieved HTTP(s) proxy URL from environment", "url", proxyURL)
+		if parsed, err := url.Parse(proxyURL); err != nil {
+			slog.Error("invalid proxy URL", "error", err)
+		} else {
+			var (
+				username string
+				password string
+				address  string
+			)
+			if parsed.User != nil {
+				username = parsed.User.Username()
+				if password, ok = parsed.User.Password(); !ok {
+					username = ""
+				}
+			}
+			parsed.User = nil
+			address = parsed.String()
+			slog.Debug("setting auto proxy", "url", address, "username", username, "password", password)
+			repository.proxy = &transport.ProxyOptions{
+				URL:      address,
+				Username: username,
+				Password: password,
+			}
 		}
 	}
 }

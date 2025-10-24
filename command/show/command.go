@@ -49,8 +49,13 @@ func (cmd *Show) Execute(args []string) error {
 			os.Exit(1)
 		}
 	}
+	commit, err := repo.CommitFromReference(reference)
+	if err != nil {
+		slog.Error("failed to get commit from reference", "reference", reference.Name().String(), "error", err)
+		os.Exit(1)
+	}
 
-	repo.ForEachFile(reference, VisitFile)
+	repo.ForEachFile(commit, VisitFile)
 
 	return nil
 }

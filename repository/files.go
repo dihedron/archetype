@@ -1,21 +1,20 @@
 package repository
 
 import (
-	"fmt"
 	"log/slog"
 
-	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
-func (r *Repository) Files(reference *plumbing.Reference) ([]*object.File, error) {
+// func (r *Repository) Files(reference *plumbing.Reference) ([]*object.File, error) {
+func (r *Repository) Files(commit *object.Commit) ([]*object.File, error) {
 	// ... retrieving the commit object
-	commit, err := r.repository.CommitObject(reference.Hash())
-	if err != nil {
-		slog.Error("error getting commit object for reference", "reference", reference.Name(), "error", err)
-		return nil, err
-	}
-	fmt.Println(commit)
+	// commit, err := r.repository.CommitObject(reference.Hash())
+	// if err != nil {
+	// 	slog.Error("error getting commit object for reference", "reference", reference.Name(), "error", err)
+	// 	return nil, err
+	// }
+	// fmt.Println(commit)
 
 	// ... retrieve the tree from the commit
 	tree, err := commit.Tree()
@@ -35,10 +34,11 @@ func (r *Repository) Files(reference *plumbing.Reference) ([]*object.File, error
 
 // ForEachFile iterates over all files in the repository and applies the
 // provided FileVisitor function to each file.
-func (r *Repository) ForEachFile(reference *plumbing.Reference, visitor FileVisitor) error {
-	files, err := r.Files(reference)
+// func (r *Repository) ForEachFile(reference *plumbing.Reference, visitor FileVisitor) error {
+func (r *Repository) ForEachFile(commit *object.Commit, visitor FileVisitor) error {
+	files, err := r.Files(commit)
 	if err != nil {
-		slog.Error("error getting files for reference", "reference", reference.Name(), "error", err)
+		slog.Error("error getting files for commit", "hash", commit.Hash.String(), "error", err)
 		return err
 	}
 	for _, file := range files {

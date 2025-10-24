@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/go-git/go-git/v6/plumbing"
@@ -14,14 +15,37 @@ func (r *Repository) Commit(hash string) (*object.Commit, error) {
 		slog.Error("repository not initialized")
 		return nil, errors.New("repository not initialized")
 	}
-	h := plumbing.NewHash(hash)
-
+	var h plumbing.Hash
+	if len(hash) == 7 {
+		slog.Debug("using short hash", "hash", hash)
+		ref, err := r.repository.ResolveRevision(plumbing.Revision(hash))
+		if err != nil {
+			return nil, fmt.Errorf("error resolving revision '%s': %w", hash, err)
+		}
+		// convert the *plumbing.Reference to a plumbing.Hash
+		h = *ref
+	} else {
+		slog.Debug("using long hash", "hash", hash)
+		h = plumbing.NewHash(hash)
+	}
 	commit, err := r.repository.CommitObject(h)
 	if err != nil {
 		slog.Error("failed to get commit", "hash", hash, "error", err)
 		return nil, err
 	}
 	return commit, nil
+}
+
+// CommitFromReference returns the Commit object that is pointed
+// to by a given reference.
+func (r *Repository) CommitFromReference(reference *plumbing.Reference) (*object.Commit, error) {
+	// ... retrieving the commit object
+	commit, err := r.repository.CommitObject(reference.Hash())
+	if err != nil {
+		slog.Error("error getting commit object for reference", "reference", reference.Name(), "error", err)
+		return nil, err
+	}
+	return commit, err
 }
 
 // Head retrieves the current HEAD reference of the repository.
