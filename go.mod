@@ -3,8 +3,10 @@ module github.com/dihedron/archetype
 go 1.25.1
 
 require (
+	github.com/dihedron/rawdata v1.0.2
 	github.com/go-git/go-git/v6 v6.0.0-20251009132922-75a182125145
 	github.com/jessevdk/go-flags v1.6.1
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

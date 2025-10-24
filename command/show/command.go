@@ -4,11 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"log/slog"
-	"os"
 
 	"github.com/dihedron/archetype/command/base"
-	"github.com/dihedron/archetype/repository"
-	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/dihedron/archetype/logging"
+	"github.com/dihedron/archetype/parameters"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
@@ -17,47 +16,65 @@ type Show struct {
 }
 
 func (cmd *Show) Execute(args []string) error {
-	fmt.Printf("Executing Show command")
 
-	auth, err := cmd.AuthenticationOpts()
-	if err != nil {
-		slog.Error("error validating authentication options", "error", err)
-		return err
+	p := parameters.Parameters{
+		Version: 1,
+		Values: []parameters.Parameter{
+			{
+				Name:        "name1",
+				Type:        "bool",
+				Description: "Description 1",
+				Default:     "default 1",
+				Value:       "value 1",
+			},
+		},
 	}
 
-	repo := repository.New(
-		cmd.Repository,
-		auth,
-	)
-	repo.Clone()
-
-	var reference *plumbing.Reference
-	if cmd.Tag == "HEAD" {
-		var err error
-		// ... retrieving the branch being pointed by HEAD
-		reference, err = repo.Head()
-		if err != nil {
-			slog.Error("failed to get HEAD", "error", err)
-			os.Exit(1)
-		}
-		fmt.Println("HEAD points to:", reference.Name())
-	} else {
-		var err error
-		reference, err = repo.Tag(cmd.Tag)
-		if err != nil {
-			slog.Error("failed to get tag", "error", err)
-			os.Exit(1)
-		}
-	}
-	commit, err := repo.CommitFromReference(reference)
-	if err != nil {
-		slog.Error("failed to get commit from reference", "reference", reference.Name().String(), "error", err)
-		os.Exit(1)
-	}
-
-	repo.ForEachFile(commit, VisitFile)
+	fmt.Printf("%s\n", logging.ToYAML(p))
 
 	return nil
+
+	// fmt.Printf("Executing Show command")
+
+	// auth, err := cmd.AuthenticationOpts()
+	// if err != nil {
+	// 	slog.Error("error validating authentication options", "error", err)
+	// 	return err
+	// }
+
+	// repo := repository.New(
+	// 	cmd.Repository,
+	// 	auth,
+	// )
+	// repo.Clone()
+
+	// var reference *plumbing.Reference
+	// if cmd.Tag == "HEAD" {
+	// 	var err error
+	// 	// ... retrieving the branch being pointed by HEAD
+	// 	reference, err = repo.Head()
+	// 	if err != nil {
+	// 		slog.Error("failed to get HEAD", "error", err)
+	// 		os.Exit(1)
+	// 	}
+	// 	fmt.Println("HEAD points to:", reference.Name())
+	// } else {
+	// 	var err error
+	// 	reference, err = repo.Tag(cmd.Tag)
+	// 	if err != nil {
+	// 		slog.Error("failed to get tag", "error", err)
+	// 		os.Exit(1)
+	// 	}
+	// }
+	// commit, err := repo.CommitFromReference(reference)
+	// if err != nil {
+	// 	slog.Error("failed to get commit from reference", "reference", reference.Name().String(), "error", err)
+	// 	os.Exit(1)
+	// }
+
+	// repo.ForEachFile(commit, VisitFile)
+
+	// return nil
 }
 
 func VisitFile(file *object.File) error {

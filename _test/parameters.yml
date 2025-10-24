@@ -1,0 +1,17 @@
+version: 1
+parameters:
+    - name: name 1
+      description: Description 1
+      type: bool
+      default: default 1
+      value: value 1
+    - name: name 2
+      description: Description 2
+      type: bool
+      default: default 2
+      value: value 2
+    - name: name 3
+      description: Description 3
+      type: bool
+      default: default 3
+      value: value 3            

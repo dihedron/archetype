@@ -6,12 +6,14 @@ import (
 	"log/slog"
 
 	"github.com/dihedron/archetype/command/base"
+	"github.com/dihedron/archetype/parameters"
 	"github.com/dihedron/archetype/repository"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
 type Init struct {
 	base.Command
+	Parameters parameters.Parameters `short:"p" long:"parameters" description:"The path to the parameters file to use for saturating the archetype variables" required:"true"`
 }
 
 func (cmd *Init) Execute(args []string) error {
@@ -43,6 +45,9 @@ func (cmd *Init) Execute(args []string) error {
 	}
 
 	// 4. load the parameters (TODO)
+	for _, parameter := range cmd.Parameters.Values {
+		fmt.Printf("%s %v\n", parameter.Name, parameter.Value)
+	}
 
 	// 5. loop over the files and perform some processing
 	repo.ForEachFile(commit, visitFile)
