@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/dihedron/repo/command/base"
-	"github.com/dihedron/repo/repository"
+	"github.com/dihedron/archetype/command/base"
+	"github.com/dihedron/archetype/repository"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
@@ -58,7 +58,7 @@ func (cmd *Show) Execute(args []string) error {
 func VisitFile(file *object.File) error {
 	fmt.Printf("%v  %9d  %s    %s\n", file.Mode, file.Size, file.Hash.String(), file.Name)
 
-	if file.Name == ".repo/metadata.yml" {
+	if file.Name == ".archetype/metadata.yml" {
 		reader, err := file.Blob.Reader()
 		if err != nil {
 			return err

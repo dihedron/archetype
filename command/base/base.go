@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/dihedron/repo/repository"
+	"github.com/dihedron/archetype/repository"
 )
 
 // This is the set of common command line options.

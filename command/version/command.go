@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/dihedron/repo/metadata"
+	"github.com/dihedron/archetype/metadata"
 )
 
 // Version is the command that prints information about the application

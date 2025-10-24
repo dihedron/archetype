@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/dihedron/repo/command/base"
-	"github.com/dihedron/repo/repository"
+	"github.com/dihedron/archetype/command/base"
+	"github.com/dihedron/archetype/repository"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )

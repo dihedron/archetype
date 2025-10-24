@@ -1,9 +1,9 @@
 package command
 
 import (
-	"github.com/dihedron/repo/command/bootstrap"
-	"github.com/dihedron/repo/command/show"
-	"github.com/dihedron/repo/command/version"
+	"github.com/dihedron/archetype/command/bootstrap"
+	"github.com/dihedron/archetype/command/show"
+	"github.com/dihedron/archetype/command/version"
 )
 
 // Commands is the set of root command groups.

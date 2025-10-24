@@ -1,4 +1,4 @@
-module github.com/dihedron/repo
+module github.com/dihedron/archetype
 
 go 1.25.1
 
