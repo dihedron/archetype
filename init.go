@@ -17,20 +17,7 @@ var (
 	memprof *os.File
 )
 
-func cleanup() {
-	if cpuprof != nil {
-		defer cpuprof.Close()
-		defer pprof.StopCPUProfile()
-	}
-	if memprof != nil {
-		defer memprof.Close()
-		runtime.GC() // get up-to-date statistics
-		if err := pprof.WriteHeapProfile(memprof); err != nil {
-			slog.Error("could not write memory profile", "error", err)
-		}
-	}
-}
-
+// init initialises the logger and profiling based on environment variables.
 func init() {
 	const LevelNone = slog.Level(1000)
 
@@ -144,5 +131,20 @@ func init() {
 			slog.Error("could not create memory profile", "error", err)
 		}
 		memprof = f
+	}
+}
+
+// cleanup stops profiling and writes profiles to disk.
+func cleanup() {
+	if cpuprof != nil {
+		defer cpuprof.Close()
+		defer pprof.StopCPUProfile()
+	}
+	if memprof != nil {
+		defer memprof.Close()
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(memprof); err != nil {
+			slog.Error("could not write memory profile", "error", err)
+		}
 	}
 }

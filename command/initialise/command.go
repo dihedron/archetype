@@ -6,20 +6,38 @@ import (
 	"log/slog"
 
 	"github.com/dihedron/archetype/command/base"
-	"github.com/dihedron/archetype/parameters"
+	"github.com/dihedron/archetype/logging"
 	"github.com/dihedron/archetype/repository"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
-type Init struct {
+type Initialise struct {
 	base.Command
-	Parameters parameters.Parameters `short:"p" long:"parameters" description:"The path to the parameters file to use for saturating the archetype variables" required:"true"`
+	// Settings is the path to the settings file to use for saturating the archetype variables.
+	Settings Settings `short:"s" long:"settings" description:"The settings used to define the archetype and the specific parameters" required:"true"`
 }
 
-func (cmd *Init) Execute(args []string) error {
+// Execute runs the Initialise command.
+func (cmd *Initialise) Execute(args []string) error {
 	slog.Info("executing Init command")
 
 	var options []repository.Option
+
+	fmt.Printf("%s\n", logging.ToYAML(cmd.Settings))
+
+	if cmd.Settings.Version != 1 {
+		slog.Error("unsupported settings version", "version", cmd.Settings.Version)
+		return fmt.Errorf("unsupported settings version: %d", cmd.Settings.Version)
+	}
+
+	if cmd.Settings.Repository.URL == "" {
+		slog.Error("repository URL not specified in settings")
+		return fmt.Errorf("repository URL not specified in settings")
+	}
+
+	if cmd.Settings.Repository.Auth != nil {
+		// TODO: validate auth settings
+	}
 
 	auth, err := cmd.AuthenticationOpts()
 	if err != nil {
@@ -44,10 +62,12 @@ func (cmd *Init) Execute(args []string) error {
 		return err
 	}
 
-	// 4. load the parameters (TODO)
-	for _, parameter := range cmd.Parameters.Values {
-		fmt.Printf("%s %v\n", parameter.Name, parameter.Value)
-	}
+	/*
+		// 4. load the parameters (TODO)
+		for _, parameter := range cmd.Parameters.Values {
+			fmt.Printf("%s %v\n", parameter.Name, parameter.Value)
+		}
+	*/
 
 	// 5. loop over the files and perform some processing
 	repo.ForEachFile(commit, visitFile)

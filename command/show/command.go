@@ -6,8 +6,9 @@ import (
 	"log/slog"
 
 	"github.com/dihedron/archetype/command/base"
+	"github.com/dihedron/archetype/command/initialise"
 	"github.com/dihedron/archetype/logging"
-	"github.com/dihedron/archetype/parameters"
+	"github.com/dihedron/archetype/pointer"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
@@ -17,9 +18,19 @@ type Show struct {
 
 func (cmd *Show) Execute(args []string) error {
 
-	p := parameters.Parameters{
+	p := initialise.Settings{
 		Version: 1,
-		Values: []parameters.Parameter{
+		Repository: initialise.Repository{
+			URL: "https://github.com/go-git/go-git.git",
+			Tag: pointer.To("latest"),
+			Auth: &initialise.Auth{
+				Token:    pointer.To("my-token"),
+				Username: pointer.To("my-username"),
+				Password: pointer.To("my-password"),
+				SSHKey:   pointer.To("my-ssh-key"),
+			},
+		},
+		Parameters: []initialise.Parameter{
 			{
 				Name:        "name1",
 				Type:        "bool",
