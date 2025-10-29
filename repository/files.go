@@ -42,21 +42,4 @@ func (r *Repository) ForEachFile(commit *object.Commit, visitor FileVisitor) err
 		visitor(file)
 	}
 	return nil
-	// // ... retrieving the commit object
-	// commit, err := r.repository.CommitObject(reference.Hash())
-	// if err != nil {
-	// 	slog.Error("error getting commit object for reference", "reference", reference.Name(), "error", err)
-	// 	return err
-	// }
-	// fmt.Println(commit)
-
-	// // ... retrieve the tree from the commit
-	// tree, err := commit.Tree()
-	// if err != nil {
-	// 	slog.Error("error getting tree for commit", "commit", commit.Hash, "error", err)
-	// 	return err
-	// }
-
-	// // ... get the files iterator and print the file
-	// return tree.Files().ForEach(visitor)
 }

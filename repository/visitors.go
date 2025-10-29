@@ -37,7 +37,7 @@ type FileVisitor func(file *object.File) error
 // DefaultFileVisitor is a sample implementation of FileVisitor that
 // logs the commit details.
 func DefaultFileVisitor(file *object.File) error {
-	slog.Info("visiting file", "type", file.Type().String(), "name", file.Hash.String(), "size", file.Size, "hash", file.Hash.String())
+	slog.Info("visiting file", "type", file.Type().String(), "name", file.Name, "size", file.Size, "hash", file.Hash.String())
 	fmt.Printf("%v  %9d  %s    %s\n", file.Mode, file.Size, file.Hash.String(), file.Name)
 	return nil
 }

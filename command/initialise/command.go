@@ -1,9 +1,9 @@
 package initialise
 
 import (
-	"bufio"
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/dihedron/archetype/command/base"
 	"github.com/dihedron/archetype/command/commons"
@@ -11,16 +11,21 @@ import (
 	"github.com/dihedron/archetype/pointer"
 	"github.com/dihedron/archetype/repository"
 	"github.com/dihedron/archetype/settings"
-	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
 type Initialise struct {
 	base.Command
 	// Settings is the path to the settings file to use for saturating the archetype variables.
 	Settings settings.Settings `short:"s" long:"settings" description:"The settings used to define the archetype and the specific parameters" required:"true"`
+	// Directory is the path to the directory to use for the archetype files.
+	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:"tmp/archetype-output"`
 }
 
-const CurrentVersion = 1
+const (
+	CurrentVersion              = 1
+	DefaultDirectoryPermissions = 0755
+	DefaultFilePermissions      = 0644
+)
 
 // Execute runs the Initialise command.
 func (cmd *Initialise) Execute(args []string) error {
@@ -28,7 +33,7 @@ func (cmd *Initialise) Execute(args []string) error {
 
 	var options []repository.Option
 
-	fmt.Printf("%s", logging.ToYAML(cmd.Settings))
+	slog.Debug("command configuration", "settings", logging.ToJSON(cmd.Settings), "directory", cmd.Directory)
 
 	if cmd.Settings.Version != CurrentVersion {
 		slog.Error("unsupported settings version", "version", cmd.Settings.Version, "expected", CurrentVersion)
@@ -40,7 +45,19 @@ func (cmd *Initialise) Execute(args []string) error {
 		return fmt.Errorf("repository URL not specified in settings")
 	}
 
-	// 1. extract authentication options
+	// 1. create the output directory if it does not exist; check if it is empty
+	if err := os.MkdirAll(cmd.Directory, DefaultDirectoryPermissions); err != nil {
+		slog.Error("failed to create output directory", "directory", cmd.Directory, "error", err)
+		return err
+	}
+	if files, err := os.ReadDir(cmd.Directory); err != nil {
+		slog.Error("failed to read output directory", "directory", cmd.Directory, "error", err)
+		return err
+	} else if len(files) > 0 {
+		slog.Warn("output directory is not empty", "directory", cmd.Directory)
+	}
+
+	// 2. extract authentication options
 	if cmd.Settings.Repository.Auth != nil {
 		// extract and validate auth settings
 		auth, err := commons.AuthenticationOpts(cmd.Settings.Repository)
@@ -54,7 +71,7 @@ func (cmd *Initialise) Execute(args []string) error {
 	}
 	//options = append(options, repository.WithProxyFromEnv())
 
-	// 2. create an in-memory clone of the remote archetypal repository
+	// 3. create an in-memory clone of the remote archetypal repository
 	repo := repository.New(
 		cmd.Settings.Repository.URL,
 		options...,
@@ -64,7 +81,7 @@ func (cmd *Initialise) Execute(args []string) error {
 		return err
 	}
 
-	// 3. checkout the specified tag (or 'latest' if none specified)
+	// 4. checkout the specified tag (or 'latest' if none specified)
 	if cmd.Settings.Repository.Tag == nil {
 		slog.Info("no tag specified, using 'latest' as default")
 		cmd.Settings.Repository.Tag = pointer.To("latest")
@@ -75,40 +92,23 @@ func (cmd *Initialise) Execute(args []string) error {
 		return err
 	}
 
-	/*
-		// 4. load the parameters (TODO)
-		for _, parameter := range cmd.Parameters.Values {
-			fmt.Printf("%s %v\n", parameter.Name, parameter.Value)
+	// 5. load the parameters
+	context := map[string]any{}
+	fmt.Printf("---- PARAMETERS ----\n")
+	for _, parameter := range cmd.Settings.Parameters {
+		if parameter.Value.Value == nil && parameter.Default != nil {
+			context[parameter.Name] = parameter.Default
+		} else {
+			context[parameter.Name] = parameter.Value.Value
 		}
-	*/
-
-	// 5. loop over the files and perform some processing
-	repo.ForEachFile(commit, visitFile)
-
-	// 6. launch the script for post processing (TODO)
-
-	return nil
-}
-
-func visitFile(file *object.File) error {
-	fmt.Printf("%v  %9d  %s    %s\n", file.Mode, file.Size, file.Hash.String(), file.Name)
-
-	reader, err := file.Blob.Reader()
-	if err != nil {
-		return err
+		fmt.Printf("'%s' => '%v' (type: %T)\n", parameter.Name, context[parameter.Name], context[parameter.Name])
 	}
-	defer reader.Close()
+	fmt.Printf("---- end of PARAMETERS ----\n")
 
-	scanner := bufio.NewScanner(reader)
-	// optionally, resize scanner's capacity for lines over 64K, see next example
-	for scanner.Scan() {
-		fmt.Println(scanner.Text())
-	}
+	// 6. loop over the files and perform some processing
+	repo.ForEachFile(commit, FileVisitor(cmd.Directory, context))
 
-	if err := scanner.Err(); err != nil {
-		slog.Error("error scanning file", "error", err)
-		return err
-	}
+	// 7. launch the script for post processing (TODO)
 
 	return nil
 }

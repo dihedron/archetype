@@ -36,10 +36,12 @@ func (cmd *Show) Execute(args []string) error {
 		Parameters: []settings.Parameter{
 			{
 				Name:        "name1",
-				Type:        "bool",
 				Description: "Description 1",
 				Default:     "default 1",
-				Value:       "value 1",
+				Value: settings.Value{
+					Type:  "bool",
+					Value: "value 1",
+				},
 			},
 		},
 	}

@@ -33,9 +33,13 @@ type Repository struct {
 type Parameter struct {
 	Name        string `json:"name" yaml:"name"`
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
-	Type        string `json:"type,omitempty" yaml:"type,omitempty"`
-	Default     string `json:"default,omitempty" yaml:"default,omitempty"`
-	Value       any    `json:"value,omitempty" yaml:"value,omitempty"`
+	Default     any    `json:"default,omitempty" yaml:"default,omitempty"`
+	Value       `json:",inline" yaml:",inline"`
+}
+
+type Value struct {
+	Type  string `json:"type,omitempty" yaml:"type,omitempty"`
+	Value any    `json:"value,omitempty" yaml:"value,omitempty"`
 }
 
 // Settings represents the overall settings structure,
