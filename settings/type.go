@@ -29,9 +29,9 @@ func (t *Type) Parse(value string) error {
 	switch strings.ToLower(value) {
 	case "string":
 		*t = String
-	case "number":
+	case "number", "int", "integer":
 		*t = Number
-	case "boolean":
+	case "boolean", "bool":
 		*t = Boolean
 	default:
 		return errors.New("unsupported Type value")

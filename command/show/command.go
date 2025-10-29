@@ -6,31 +6,34 @@ import (
 	"log/slog"
 
 	"github.com/dihedron/archetype/command/base"
-	"github.com/dihedron/archetype/command/initialise"
 	"github.com/dihedron/archetype/logging"
 	"github.com/dihedron/archetype/pointer"
+	"github.com/dihedron/archetype/settings"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
 type Show struct {
 	base.Command
+	URL  string         `json:"url,omitempty" yaml:"url,omitempty" short:"r" long:"repository" description:"The Git repository containing the template" required:"true"`
+	Tag  *string        `json:"tag,omitempty" yaml:"tag,omitempty" short:"t" long:"tag" description:"The tag or commit to clone" optional:"true" default:"latest"`
+	Auth *settings.Auth `json:"auth,omitempty" yaml:"auth,omitempty" group:"Authentication Options" description:"Authentication options"`
 }
 
 func (cmd *Show) Execute(args []string) error {
 
-	p := initialise.Settings{
+	p := settings.Settings{
 		Version: 1,
-		Repository: initialise.Repository{
+		Repository: settings.Repository{
 			URL: "https://github.com/go-git/go-git.git",
 			Tag: pointer.To("latest"),
-			Auth: &initialise.Auth{
+			Auth: &settings.Auth{
 				Token:    pointer.To("my-token"),
 				Username: pointer.To("my-username"),
 				Password: pointer.To("my-password"),
 				SSHKey:   pointer.To("my-ssh-key"),
 			},
 		},
-		Parameters: []initialise.Parameter{
+		Parameters: []settings.Parameter{
 			{
 				Name:        "name1",
 				Type:        "bool",
@@ -41,7 +44,7 @@ func (cmd *Show) Execute(args []string) error {
 		},
 	}
 
-	fmt.Printf("%s\n", logging.ToYAML(p))
+	fmt.Printf("%s", logging.ToYAML(p))
 
 	return nil
 

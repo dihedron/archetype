@@ -7,7 +7,7 @@ Initialise a new repository in the current directory from a template stored in a
 An example repository is available at git@github.com:go-git/go-git.git; you can check the v1.0.0 tag:
 
 ```bash
-$> archetype init -r=https://github.com/go-git/go-git.git -t=1.0.0 -p=@_test/parameters.yml
+$> archetype init -r=https://github.com/go-git/go-git.git -t=v1.0.0 -p=@_test/parameters.yml
 ```
 
 the repository HEAD (latest):

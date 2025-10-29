@@ -1,0 +1,8 @@
+version: 1
+repository:
+    url: https://github.com/go-git/go-git.git
+    tag: v1.0.0
+parameters:
+    - name: utilizza_java_17
+      value: sì
+
