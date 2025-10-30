@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
@@ -16,8 +17,11 @@ import (
 )
 
 var (
-	green func(...any) string = color.New(color.FgGreen).SprintFunc()
-	red   func(...any) string = color.New(color.FgRed).SprintFunc()
+	green   func(...any) string = color.New(color.FgGreen).SprintFunc()
+	red     func(...any) string = color.New(color.FgRed).SprintFunc()
+	yellow  func(...any) string = color.New(color.FgYellow).SprintFunc()
+	blue    func(...any) string = color.New(color.FgBlue).SprintFunc()
+	magenta func(...any) string = color.New(color.FgMagenta).SprintFunc()
 )
 
 // FileVisitor creates a FileVisitor function that processes files
@@ -25,6 +29,12 @@ var (
 func FileVisitor(directory string, context any) repository.FileVisitor {
 
 	return func(file *object.File) error {
+
+		if strings.HasPrefix(file.Name, ".archetype") {
+			slog.Info("skipping archetype files", "file", file.Name)
+			return nil
+		}
+
 		output := path.Join(path.Clean(directory), file.Name)
 		fmt.Printf("%v  %9d  %s => ", file.Mode, file.Size, file.Name)
 		//fmt.Printf("processing file %s (mode: %v, size: %d, hash: %s) as %s...\n", file.Name, file.Mode, file.Size, file.Hash.String(), output)

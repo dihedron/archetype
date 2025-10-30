@@ -7,42 +7,28 @@ import (
 
 	"github.com/dihedron/archetype/command/base"
 	"github.com/dihedron/archetype/logging"
-	"github.com/dihedron/archetype/pointer"
 	"github.com/dihedron/archetype/settings"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
 type Show struct {
 	base.Command
-	URL  string         `json:"url,omitempty" yaml:"url,omitempty" short:"r" long:"repository" description:"The Git repository containing the template" required:"true"`
-	Tag  *string        `json:"tag,omitempty" yaml:"tag,omitempty" short:"t" long:"tag" description:"The tag or commit to clone" optional:"true" default:"latest"`
-	Auth *settings.Auth `json:"auth,omitempty" yaml:"auth,omitempty" group:"Authentication Options" description:"Authentication options"`
 }
 
 func (cmd *Show) Execute(args []string) error {
 
 	p := settings.Settings{
 		Version: 1,
-		Repository: settings.Repository{
-			URL: "https://github.com/go-git/go-git.git",
-			Tag: pointer.To("latest"),
-			Auth: &settings.Auth{
-				Token:    pointer.To("my-token"),
-				Username: pointer.To("my-username"),
-				Password: pointer.To("my-password"),
-				SSHKey:   pointer.To("my-ssh-key"),
+		Parameters: map[string]any{
+			"key1": "value 1",
+			"key2": "value 2",
+			"key3": map[string]any{
+				"key3.1": "value 3.1",
+				"key3.2": "value 3.2",
+				"key3.3": "value 3.3",
 			},
-		},
-		Parameters: []settings.Parameter{
-			{
-				Name:        "name1",
-				Description: "Description 1",
-				Default:     "default 1",
-				Value: settings.Value{
-					Type:  "bool",
-					Value: "value 1",
-				},
-			},
+			"key4": true,
+			"key5": 12345,
 		},
 	}
 
