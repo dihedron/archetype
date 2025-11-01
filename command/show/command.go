@@ -11,10 +11,12 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
+// Show is the command to show the parameters of an archetype.
 type Show struct {
 	base.Command
 }
 
+// Execute is the main entry point for the show command.
 func (cmd *Show) Execute(args []string) error {
 
 	p := settings.Settings{
@@ -79,6 +81,7 @@ func (cmd *Show) Execute(args []string) error {
 	// return nil
 }
 
+// VisitFile is a callback function that is invoked for each file in the repository.
 func VisitFile(file *object.File) error {
 	fmt.Printf("%v  %9d  %s    %s\n", file.Mode, file.Size, file.Hash.String(), file.Name)
 

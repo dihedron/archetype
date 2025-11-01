@@ -24,8 +24,11 @@ var (
 	magenta func(...any) string = color.New(color.FgMagenta).SprintFunc()
 )
 
-// FileVisitor creates a FileVisitor function that processes files
-// in the given directory using the provided context for template rendering.
+// FileVisitor returns a function that processes files in a directory using the provided context for template rendering.
+// The returned function is of type repository.FileVisitor, which is a callback that is invoked for each file in the repository.
+// It skips files in the .archetype directory, and for all other files, it reads their content, parses them as text/template templates,
+// executes them with the provided context, and writes the output to the corresponding path in the destination directory.
+// It also adds the Sprig and custom template functions to the template.
 func FileVisitor(directory string, context any) repository.FileVisitor {
 
 	return func(file *object.File) error {

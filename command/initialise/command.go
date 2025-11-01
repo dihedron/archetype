@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Initialise is the command to initialise a new repository from an archetype.
 type Initialise struct {
 	base.Command
 	// Settings is the path to the settings file to use for saturating the archetype variables.
@@ -28,7 +29,10 @@ const (
 	DefaultFilePermissions      = 0644
 )
 
-// Execute runs the Initialise command.
+// Execute is the main entry point for the initialise command.
+// It clones the archetype repository, validates the provided settings against the archetype's metadata,
+// and then processes the files in the repository, treating them as templates and executing them with the provided settings.
+// The resulting files are written to the output directory.
 func (cmd *Initialise) Execute(args []string) error {
 	slog.Info("executing Initialise command")
 

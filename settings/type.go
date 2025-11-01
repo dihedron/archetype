@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// Type represents the type of a parameter.
 type Type int8
 
 const (
@@ -15,7 +16,7 @@ const (
 	Boolean
 )
 
-// String converts a Type into its string representation.
+// String returns the string representation of the Type.
 func (t Type) String() string {
 	return []string{
 		"string",
@@ -24,7 +25,7 @@ func (t Type) String() string {
 	}[t]
 }
 
-// Parse parses a string into a Type value.
+// Parse parses a string and sets the Type value accordingly.
 func (t *Type) Parse(value string) error {
 	switch strings.ToLower(value) {
 	case "string":
@@ -39,7 +40,7 @@ func (t *Type) Parse(value string) error {
 	return nil
 }
 
-// MarshalYAML marshals the Type value into a YAML string.
+// MarshalYAML implements the yaml.Marshaler interface.
 func (t Type) MarshalYAML() (interface{}, error) {
 	v := t.String()
 	if v != "" {
@@ -48,7 +49,7 @@ func (t Type) MarshalYAML() (interface{}, error) {
 	return "", fmt.Errorf("unsupported Type value: %s", v)
 }
 
-// UnmarshalYAML unmarshals a YAML value into a Type value.
+// UnmarshalYAML implements the yaml.Unmarshaler interface.
 func (t *Type) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	size := ""
 	err := unmarshal(&size)
@@ -58,12 +59,12 @@ func (t *Type) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return t.Parse(size)
 }
 
-// MarshalJSON marshals the Type value into a JSON string.
+// MarshalJSON implements the json.Marshaler interface.
 func (t Type) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.String())
 }
 
-// UnmarshalJSON unmarshals a JSON value into a Type value.
+// UnmarshalJSON implements the json.Unmarshaler interface.
 func (t *Type) UnmarshalJSON(b []byte) error {
 	var value string
 	if err := json.Unmarshal(b, &value); err != nil {

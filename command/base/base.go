@@ -8,7 +8,9 @@ import (
 	"github.com/dihedron/archetype/repository"
 )
 
-// This is the set of common command line options.
+// Command provides a base structure for all commands, containing the common
+// command line options like the repository URL, the tag to use, and all
+// the authentication-related options.
 type Command struct {
 	URL              string  `short:"r" long:"repository" description:"The Git repository containing the template" required:"true"`
 	Tag              *string `short:"t" long:"tag" description:"The tag or commit to clone" optional:"true" default:"latest"`
@@ -20,8 +22,7 @@ type Command struct {
 	UseSSHAgent      bool    `short:"A" long:"with-ssh-agent" description:"Use SSH agent for authentication" optional:"true"`
 }
 
-// HasAuthOptions checks whether any authentication options have been provided
-// in the given base.Command.
+// HasAuthOptions checks whether any authentication options have been provided.
 func (cmd *Command) HasAuthOptions() bool {
 	return cmd.Username != nil && cmd.Password != nil ||
 		cmd.Token != nil ||
@@ -30,7 +31,7 @@ func (cmd *Command) HasAuthOptions() bool {
 		cmd.UseSSHAgent
 }
 
-// AuthenticationOpts extracts authentication data from a repository.Settings
+// AuthenticationOpts extracts authentication data from the command line options
 // and creates the repository.Option needed to configure authenticated requests
 // against the remote repository.
 func (cmd *Command) AuthenticationOpts() (repository.Option, error) {
