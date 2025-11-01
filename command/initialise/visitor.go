@@ -38,11 +38,25 @@ func FileVisitor(directory string, context any) repository.FileVisitor {
 			return nil
 		}
 
-		output := path.Join(path.Clean(directory), file.Name)
+		// process the filename as a template; the name of the file may be itself a template
+		// and needs being renamed according to the values in the context; for instance, a file
+		// named {{.ProjectName}}-config.yml should be rendered as myapp-config.yml if the
+		// ProjectName in the context is "myapp"
+		filename, err := template.New("filename").Parse(file.Name)
+		if err != nil {
+			slog.Error("cannot parse filename template", "template", file.Name, "error", err)
+			return err
+		}
+		var buffer bytes.Buffer
+		if err := filename.Execute(&buffer, context); err != nil {
+			slog.Error("cannot execute filename template", "template", file.Name, "error", err)
+			return err
+		}
+		output := path.Join(path.Clean(directory), buffer.String())
 		fmt.Printf("%v  %9d  %s => ", file.Mode, file.Size, file.Name)
 		//fmt.Printf("processing file %s (mode: %v, size: %d, hash: %s) as %s...\n", file.Name, file.Mode, file.Size, file.Hash.String(), output)
 		//fmt.Printf("%s (mode: %v, size: %d): ", file.Name, file.Mode, file.Size)
-		slog.Info("visiting file", "file", file.Name)
+		slog.Info("visiting file", "file", file.Name, "output", output, "mode", file.Mode, "size", file.Size, "output", output)
 
 		reader, err := file.Blob.Reader()
 		if err != nil {
@@ -78,7 +92,7 @@ func FileVisitor(directory string, context any) repository.FileVisitor {
 		}
 
 		// execute the template
-		var buffer bytes.Buffer
+		buffer.Reset()
 		if err := templates.ExecuteTemplate(&buffer, main, context); err != nil {
 			slog.Error("cannot apply data to template", "error", err)
 			fmt.Printf("%s applying data to template: %v\n", red("ERROR"), err)

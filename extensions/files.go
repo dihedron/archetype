@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 )
 
+// IsFile checks if the given path is a file.
 func IsFile(path string) (bool, error) {
 	pwd, _ := os.Getwd()
 	slog.Debug("checking if it's a file", "path", path, "pwd", pwd)
@@ -23,6 +24,7 @@ func IsFile(path string) (bool, error) {
 	return true, nil
 }
 
+// IsDir checks if the given path is a directory.
 func IsDir(path string) (bool, error) {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -35,6 +37,7 @@ func IsDir(path string) (bool, error) {
 	return false, nil
 }
 
+// FileSize returns the size of the given file.
 func FileSize(path string) (int64, error) {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -43,6 +46,7 @@ func FileSize(path string) (int64, error) {
 	return info.Size(), nil
 }
 
+// DirSize returns the size of the given directory.
 func DirSize(path string) (int64, error) {
 	var size int64
 	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
@@ -60,6 +64,7 @@ func DirSize(path string) (int64, error) {
 	return size, nil
 }
 
+// ListDir returns the list of files in the given directory.
 func ListDir(path string) ([]string, error) {
 	files := []string{}
 	err := filepath.Walk(path, func(dir string, info os.FileInfo, err error) error {

@@ -7,6 +7,7 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
+// Files returns the list of files in the given commit.
 func (r *Repository) Files(commit *object.Commit) ([]*object.File, error) {
 
 	if commit == nil {
@@ -29,9 +30,8 @@ func (r *Repository) Files(commit *object.Commit) ([]*object.File, error) {
 	return files, nil
 }
 
-// ForEachFile iterates over all files in the repository and applies the
-// provided FileVisitor function to each file.
-// func (r *Repository) ForEachFile(reference *plumbing.Reference, visitor FileVisitor) error {
+// ForEachFile iterates over all the files in the given commit and calls the
+// visitor function for each file.
 func (r *Repository) ForEachFile(commit *object.Commit, visitor FileVisitor) error {
 	files, err := r.Files(commit)
 	if err != nil {

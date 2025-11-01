@@ -1,6 +1,6 @@
 package main
 
-// these are the single command options
+// Options is the struct that contains all the command-line options.
 type Options struct {
 	Repository string `short:"r" long:"repository" description:"The Git repository to clone" required:"true"`
 	Tag        string `short:"t" long:"tag" description:"The tag to clone" optional:"true" default:"HEAD"`

@@ -17,7 +17,8 @@ var (
 	memprof *os.File
 )
 
-// init initialises the logger and profiling based on environment variables.
+// init initialises the logging and profiling based on environment variables.
+// It is called automatically by the Go runtime before the main function.
 func init() {
 	const LevelNone = slog.Level(1000)
 
@@ -134,7 +135,8 @@ func init() {
 	}
 }
 
-// cleanup stops profiling and writes profiles to disk.
+// cleanup stops the CPU and memory profiling and writes the profiles to disk.
+// It is called by the main function at the end of the execution.
 func cleanup() {
 	if cpuprof != nil {
 		defer cpuprof.Close()

@@ -7,12 +7,20 @@ import (
 	"text/template"
 )
 
-// Include is the function that implements inclusion of
-// subfiles with an optional padding; when used without
-// padding it is roughly equivalent to "template"; padding
-// provides a way to prepend a constant string to each line
-// in the output. The usage is as follows:
-// {{ include <template> [<pipeline>] [<padding>] }}
+// Include is a template function that allows including a template from a file.
+// It is roughly equivalent to the "template" keyword, but it also allows to
+// specify an optional padding string that is prepended to each line of the
+// included template.
+// The function signature is:
+//
+//	include <template> [<pipeline>] [<padding>]
+//
+// where:
+//   - <template> is the path to the template file to include.
+//   - <pipeline> is an optional map[string]interface{} that is used as the
+//     pipeline for the template execution.
+//   - <padding> is an optional string that is prepended to each line of the
+//     included template.
 func Include(args ...interface{}) (string, error) {
 	var (
 		file    string

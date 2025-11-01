@@ -6,7 +6,7 @@ import (
 	"github.com/dihedron/archetype/command/version"
 )
 
-// Commands is the set of root command groups.
+// Commands is the main container for all the commands of the application.
 type Commands struct {
 	// Initialise runs the Initialise command
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices

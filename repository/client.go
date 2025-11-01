@@ -14,9 +14,7 @@ import (
 	"github.com/go-git/go-git/v6/storage/memory"
 )
 
-// Repository is a struct that encapsulates the configuration and methods needed to
-// clone a Git repository. It supports various authentication methods and allows
-// specifying branch, commit, and target directory for the clone operation.
+// Repository represents a Git repository, either local or remote.
 type Repository struct {
 	address    string
 	auth       transport.AuthMethod
@@ -24,11 +22,10 @@ type Repository struct {
 	proxy      *transport.ProxyOptions
 }
 
-// Option is a functional option for configuring the Cloner.
+// Option is a functional option for configuring a Repository.
 type Option func(*Repository)
 
-// New creates a new Cloner instance with the specified repository URL and
-// applies any provided functional options to configure it.
+// New creates a new Repository with the given address and options.
 func New(address string, options ...Option) *Repository {
 	repository := &Repository{
 		address: address,
@@ -41,8 +38,7 @@ func New(address string, options ...Option) *Repository {
 	return repository
 }
 
-// WithBasicAuth is a helper to set up HTTP basic authentication using a
-// username and password.
+// WithBasicAuth configures the Repository to use HTTP basic authentication.
 func WithBasicAuth(username string, password string) Option {
 	return func(repository *Repository) {
 		repository.auth = &http.BasicAuth{
@@ -52,8 +48,8 @@ func WithBasicAuth(username string, password string) Option {
 	}
 }
 
-// WithTokenAuth is a helper to set up HTTP Basic authentication using a
-// personal access token (PAT).
+// WithTokenAuth configures the Repository to use a personal access token for
+// authentication.
 func WithTokenAuth(token string) Option {
 	return func(repository *Repository) {
 		repository.auth = &http.BasicAuth{
@@ -63,9 +59,7 @@ func WithTokenAuth(token string) Option {
 	}
 }
 
-// WithSSHKey is a helper to set up SSH authentication using a private key
-// file. If the key is password-protected, the password must be provided as
-// well; otherwise, nil can be passed.
+// WithSSHKey configures the Repository to use an SSH key for authentication.
 func WithSSHKey(path string, password *string) Option {
 	return func(repository *Repository) {
 		slog.Info("setting up SSH authentication...")
@@ -94,8 +88,8 @@ func WithSSHKey(path string, password *string) Option {
 	}
 }
 
-// WithDefaultSSHKey is a helper to set up SSH authentication using the default
-// private key file located in the user's home directory (~/.ssh/id_rsa).
+// WithDefaultSSHKey configures the Repository to use the default SSH key for
+// authentication.
 func WithDefaultSSHKey() Option {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -105,8 +99,7 @@ func WithDefaultSSHKey() Option {
 	return WithSSHKey(filepath.Join(home, ".ssh", "id_rsa"), nil)
 }
 
-// WithSSHAgent is a helper to set up SSH authentication using the SSH agent
-// (ssh-agent) running on the local machine.
+// WithSSHAgent configures the Repository to use an SSH agent for authentication.
 func WithSSHAgent() Option {
 	return func(repository *Repository) {
 		slog.Info("setting up SSH authentication using SSH agent...")
@@ -119,7 +112,7 @@ func WithSSHAgent() Option {
 	}
 }
 
-// WithProxy is a helper to set up a proxy for HTTP/HTTPS transport.
+// WithProxy configures the Repository to use a proxy.
 func WithProxy(proxyURL string, username string, password string) Option {
 	return func(repository *Repository) {
 		slog.Info("setting up proxy for git transport", "proxy", proxyURL)
@@ -131,8 +124,8 @@ func WithProxy(proxyURL string, username string, password string) Option {
 	}
 }
 
-// WithProxyFromEnv is a helper to set up a proxy for HTTP/HTTPS transport
-// by honouring the HTTP_PROXY and/or HTTPS_PROXY variables.
+// WithProxyFromEnv configures the Repository to use a proxy from the environment
+// variables (HTTP_PROXY, HTTPS_PROXY).
 func WithProxyFromEnv() Option {
 	return func(repository *Repository) {
 		slog.Info("setting up proxy for git transport", "repository", repository.address)
@@ -188,8 +181,7 @@ func WithProxyFromEnv() Option {
 	}
 }
 
-// Clone performs the clone operation using the configured settings and
-// authentication method. It clones the repository into memory.
+// Clone clones the repository into memory.
 func (r *Repository) Clone() error {
 	slog.Info("creating in-memory storage...")
 	storage := memory.NewStorage()

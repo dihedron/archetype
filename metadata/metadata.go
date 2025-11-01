@@ -90,6 +90,7 @@ func init() {
 	}
 }
 
+// Print prints the compact version of the application metadata.
 func Print(writer io.Writer) {
 	fmt.Fprintf(writer,
 		"\n  %s v%s.%s.%s (%s - %s/%s) - %s - %s\n\n",
@@ -104,6 +105,7 @@ func Print(writer io.Writer) {
 		Description)
 }
 
+// PrintFull prints the full version of the application metadata.
 func PrintFull(writer io.Writer) {
 	fmt.Printf("  - Name                      : %s\n", Name)
 	fmt.Printf("  - Description               : %s\n", Description)

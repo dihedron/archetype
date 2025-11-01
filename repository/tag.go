@@ -7,7 +7,7 @@ import (
 	"github.com/go-git/go-git/v6/plumbing"
 )
 
-// Tag retrieves a tag reference by its name.
+// Tag returns the reference to the given tag.
 func (r *Repository) Tag(name string) (*plumbing.Reference, error) {
 	if r == nil || r.repository == nil {
 		slog.Error("repository not initialized")
@@ -21,7 +21,7 @@ func (r *Repository) Tag(name string) (*plumbing.Reference, error) {
 	return reference, nil
 }
 
-// Tags retrieves all tag references.
+// Tags returns all the tags in the repository.
 func (r *Repository) Tags() ([]*plumbing.Reference, error) {
 	var tags []*plumbing.Reference
 	err := r.ForEachTag(func(reference *plumbing.Reference) error {
@@ -35,7 +35,8 @@ func (r *Repository) Tags() ([]*plumbing.Reference, error) {
 	return tags, nil
 }
 
-// ForEachTag iterates over all tag references applying the visitor function.
+// ForEachTag iterates over all the tags in the repository and calls the
+// visitor function for each tag.
 func (r *Repository) ForEachTag(visitor ReferenceVisitor) error {
 	if r == nil || r.repository == nil {
 		slog.Error("repository not initialized")
