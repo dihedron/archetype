@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"log/slog"
 	"net/url"
 	"os"
@@ -26,7 +27,13 @@ type Repository struct {
 type Option func(*Repository)
 
 // New creates a new Repository with the given address and options.
-func New(address string, options ...Option) *Repository {
+func New(address string, options ...Option) (*Repository, error) {
+	if address == "" || address == "." {
+		slog.Debug("using default address", "address", "file://./")
+		address = "file://./"
+	} else {
+		slog.Debug("using explicitly provided address", "address", address)
+	}
 	repository := &Repository{
 		address: address,
 	}
@@ -35,7 +42,21 @@ func New(address string, options ...Option) *Repository {
 			option(repository)
 		}
 	}
-	return repository
+	if strings.HasPrefix(repository.address, "file://") {
+		err := repository.open()
+		if err != nil {
+			slog.Error("failed to open local repository", "error", err)
+			return nil, err
+		}
+		return repository, nil
+	} else if strings.HasPrefix(repository.address, "ssh://") || strings.HasPrefix(repository.address, "http://") || strings.HasPrefix(repository.address, "https://") {
+		err := repository.clone()
+		if err != nil {
+			slog.Error("failed to clone remote repository", "error", err)
+			return nil, err
+		}
+	}
+	return repository, nil
 }
 
 // WithBasicAuth configures the Repository to use HTTP basic authentication.
@@ -181,8 +202,25 @@ func WithProxyFromEnv() Option {
 	}
 }
 
+// open opens the repository using the povided address.
+func (r *Repository) open() error {
+	if r.address == "" {
+		slog.Error("repository address not set")
+		return fmt.Errorf("repository address not set")
+	}
+	directory := strings.TrimPrefix(r.address, "file://")
+	slog.Debug("opening repository", "address", r.address, "directory", directory)
+	repository, err := git.PlainOpen(directory)
+	if err != nil {
+		slog.Error("failed to open repository", "error", err)
+		return err
+	}
+	r.repository = repository
+	return nil
+}
+
 // Clone clones the repository into memory.
-func (r *Repository) Clone() error {
+func (r *Repository) clone() error {
 	slog.Info("creating in-memory storage...")
 	storage := memory.NewStorage()
 

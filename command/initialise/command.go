@@ -71,11 +71,8 @@ func (cmd *Initialise) Execute(args []string) error {
 	//options = append(options, repository.WithProxyFromEnv())
 
 	// 4. create an in-memory clone of the remote archetypal repository
-	repo := repository.New(
-		cmd.URL,
-		options...,
-	)
-	if err := repo.Clone(); err != nil {
+	repo, err := repository.New(cmd.URL, options...)
+	if err != nil {
 		slog.Error("failed to clone remote repository", "url", cmd.URL, "error", err)
 		return fmt.Errorf("failed to clone remote repository '%s': %w", cmd.URL, err)
 	}
