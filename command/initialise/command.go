@@ -18,7 +18,7 @@ import (
 type Initialise struct {
 	base.Command
 	// Settings is the path to the settings file to use for saturating the archetype variables.
-	Settings settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" required:"true"`
+	Settings settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" required:"true" default:"."`
 	// Directory is the path to the directory to use for the archetype files.
 	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/output"`
 }

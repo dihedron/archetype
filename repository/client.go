@@ -28,7 +28,7 @@ type Option func(*Repository)
 
 // New creates a new Repository with the given address and options.
 func New(address string, options ...Option) (*Repository, error) {
-	if address == "" || address == "." {
+	if address == "" || address == "." || address == "./" || address == "./." {
 		slog.Debug("using default address", "address", "file://./")
 		address = "file://./"
 	} else {
