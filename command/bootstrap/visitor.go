@@ -1,4 +1,4 @@
-package initialise
+package bootstrap
 
 import (
 	"bytes"

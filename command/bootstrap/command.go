@@ -1,4 +1,4 @@
-package initialise
+package bootstrap
 
 import (
 	"fmt"
@@ -14,11 +14,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Initialise is the command to initialise a new repository from an archetype.
-type Initialise struct {
+// Bootstrap is the command to initialise a new repository from an archetype.
+type Bootstrap struct {
 	base.Command
 	// Settings is the path to the settings file to use for saturating the archetype variables.
-	Settings settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" required:"true" default:"."`
+	Settings settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" required:"true"`
 	// Directory is the path to the directory to use for the archetype files.
 	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/output"`
 }
@@ -33,8 +33,8 @@ const (
 // It clones the archetype repository, validates the provided settings against the archetype's metadata,
 // and then processes the files in the repository, treating them as templates and executing them with the provided settings.
 // The resulting files are written to the output directory.
-func (cmd *Initialise) Execute(args []string) error {
-	slog.Info("executing Initialise command")
+func (cmd *Bootstrap) Execute(args []string) error {
+	slog.Info("executing Bootstrap command")
 
 	var options []repository.Option
 
