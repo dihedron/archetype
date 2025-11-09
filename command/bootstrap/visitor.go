@@ -11,17 +11,9 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/dihedron/archetype/extensions"
+	"github.com/dihedron/archetype/printf"
 	"github.com/dihedron/archetype/repository"
-	"github.com/fatih/color"
 	"github.com/go-git/go-git/v6/plumbing/object"
-)
-
-var (
-	green   func(...any) string = color.New(color.FgGreen).SprintFunc()
-	red     func(...any) string = color.New(color.FgRed).SprintFunc()
-	yellow  func(...any) string = color.New(color.FgYellow).SprintFunc()
-	blue    func(...any) string = color.New(color.FgBlue).SprintFunc()
-	magenta func(...any) string = color.New(color.FgMagenta).SprintFunc()
 )
 
 // FileVisitor returns a function that processes files in a directory using the provided context for template rendering.
@@ -58,17 +50,17 @@ func FileVisitor(directory string, context any) repository.FileVisitor {
 		//fmt.Printf("%s (mode: %v, size: %d): ", file.Name, file.Mode, file.Size)
 		slog.Info("visiting file", "file", file.Name, "output", output, "mode", file.Mode, "size", file.Size, "output", output)
 
-		reader, err := file.Blob.Reader()
-		if err != nil {
-			fmt.Printf("%s getting file reader: %v\n", red("ERROR"), err)
-			slog.Error("error getting file reader", "file", file.Name, "error", err)
-			return err
-		}
-		defer reader.Close()
+		// reader2, err := file.Blob.Reader()
+		// if err != nil {
+		// 	fmt.Printf("%s getting file reader: %v\n", red("ERROR"), err)
+		// 	slog.Error("error getting file reader", "file", file.Name, "error", err)
+		// 	return err
+		// }
+		// defer reader2.Close()
 
 		contents, err := file.Contents()
 		if err != nil {
-			fmt.Printf("%s getting file contents: %v\n", red("ERROR"), err)
+			fmt.Printf("%s getting file contents: %v\n", printf.Red("ERROR"), err)
 			slog.Error("error getting file contents", "file", file.Name, "error", err)
 			return err
 		}
@@ -87,7 +79,7 @@ func FileVisitor(directory string, context any) repository.FileVisitor {
 		templates, err := template.New(main).Funcs(functions).Parse(contents)
 		if err != nil {
 			slog.Error("cannot parse template file", "file", file.Name, "error", err)
-			fmt.Printf("%s parsing template: %v\n", red("ERROR"), err)
+			fmt.Printf("%s parsing template: %v\n", printf.Red("ERROR"), err)
 			return fmt.Errorf("error parsing template file %v: %w", file.Name, err)
 		}
 
@@ -95,17 +87,17 @@ func FileVisitor(directory string, context any) repository.FileVisitor {
 		buffer.Reset()
 		if err := templates.ExecuteTemplate(&buffer, main, context); err != nil {
 			slog.Error("cannot apply data to template", "error", err)
-			fmt.Printf("%s applying data to template: %v\n", red("ERROR"), err)
+			fmt.Printf("%s applying data to template: %v\n", printf.Red("ERROR"), err)
 			return fmt.Errorf("error applying data to template: %w", err)
 		}
 
 		// output the rendered content
 		if err = os.WriteFile(output, buffer.Bytes(), os.FileMode(file.Mode)); err != nil {
 			slog.Error("error writing file", "file", file.Name, "error", err)
-			fmt.Printf("%s writing file as %s: %v\n", red("ERROR"), output, err)
+			fmt.Printf("%s writing file as %s: %v\n", printf.Red("ERROR"), output, err)
 			return fmt.Errorf("error writing file %s: %w", file.Name, err)
 		}
-		fmt.Printf("%s (as %s)\n", green("SUCCESS"), output)
+		fmt.Printf("%s (as %s)\n", printf.Green("SUCCESS"), output)
 		//fmt.Printf("---- rendered content of %s ----\n%s\n---- end of rendered content of %s ----\n", file.Name, buffer.String(), file.Name)
 		return nil
 	}

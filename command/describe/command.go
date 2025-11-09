@@ -3,6 +3,7 @@ package describe
 import (
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/dihedron/archetype/command/base"
 	"github.com/dihedron/archetype/logging"
@@ -15,6 +16,8 @@ import (
 // Describe is the command to describe the settings and parameters of an archetype.
 type Describe struct {
 	base.Command
+	Exclude []string `short:"e" long:"exclude" description:"The pattern of files to exclude from processing" optional:"true"`
+	Include []string `short:"i" long:"include" description:"The pattern of files to include from processing" optional:"true"`
 }
 
 // Execute is the main entry point for the describe command.
@@ -22,6 +25,10 @@ func (cmd *Describe) Execute(args []string) error {
 
 	slog.Info("executing Describe command")
 
+	if len(cmd.Exclude) > 0 && len(cmd.Include) > 0 {
+		slog.Warn("both exclude and include patterns specified; include patterns will take precedence")
+		fmt.Fprintf(os.Stderr, "Both exclude and include patterns specified; include patterns will take precedence\n")
+	}
 	var options []repository.Option
 
 	// 1. check that the repository URL is specified
@@ -82,13 +89,12 @@ func (cmd *Describe) Execute(args []string) error {
 		Parameters: map[string]any{},
 	}
 	for key, value := range metadata.Parameters {
-		settings.Parameters[key] = value
-	}
-	for key, value := range metadata.Parameters {
 		settings.Parameters[key] = value.Default
 	}
-
 	fmt.Printf("%s", logging.ToYAML(settings))
+
+	// 6. loop over the files and perform some processing
+	repo.ForEachFile(commit, FileVisitor(cmd.Exclude, cmd.Include))
 
 	return nil
 

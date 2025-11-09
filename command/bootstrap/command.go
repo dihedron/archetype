@@ -9,6 +9,7 @@ import (
 	"github.com/dihedron/archetype/command/base"
 	"github.com/dihedron/archetype/logging"
 	"github.com/dihedron/archetype/pointer"
+	"github.com/dihedron/archetype/printf"
 	"github.com/dihedron/archetype/repository"
 	"github.com/dihedron/archetype/settings"
 	"gopkg.in/yaml.v3"
@@ -117,7 +118,7 @@ func (cmd *Bootstrap) Execute(args []string) error {
 	}
 	// 7. load and validate the parameters from the settings
 	context := map[string]any{}
-	fmt.Printf("---- %s ----\n", yellow("PARAMETERS"))
+	fmt.Printf("---- %s ----\n", printf.Yellow("PARAMETERS"))
 	for key, value := range cmd.Settings.Parameters {
 		meta, ok := metadata.Parameters[key]
 		if !ok {
@@ -136,13 +137,13 @@ func (cmd *Bootstrap) Execute(args []string) error {
 			context[key] = value
 		}
 		fmt.Printf("'%s' => '%s' (type: %s)\n",
-			green(key),
-			fmt.Sprintf("%v", green(context[key])),
-			blue(fmt.Sprintf("%T", value)),
+			printf.Green(key),
+			fmt.Sprintf("%v", printf.Green(context[key])),
+			printf.Blue(fmt.Sprintf("%T", value)),
 		)
-		//fmt.Sprintf("%T", blue(parameter.Value)))
+		//fmt.Sprintf("%T", printf.Blue(parameter.Value)))
 	}
-	fmt.Printf("---- %s ----\n", yellow("PARAMETERS"))
+	fmt.Printf("---- %s ----\n", printf.Yellow("PARAMETERS"))
 
 	// 6. loop over the files and perform some processing
 	repo.ForEachFile(commit, FileVisitor(cmd.Directory, context))
