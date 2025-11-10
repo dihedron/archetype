@@ -16,30 +16,30 @@ import (
 // It skips files in the .archetype directory, and for all other files, it reads their content, parses them as text/template templates,
 // executes them with the provided context, and writes the output to the corresponding path in the destination directory.
 // It also adds the Sprig and custom template functions to the template.
-func FileVisitor(exclude []string, include []string) repository.FileVisitor {
+func FileVisitor(excludePatterns []string, includePatterns []string) repository.FileVisitor {
 
 	re := regexp.MustCompile(`(?s){{.*?}}`)
 
-	includePatterns := make([]*regexp.Regexp, 0)
-	excludePatterns := make([]*regexp.Regexp, 0)
+	includes := make([]*regexp.Regexp, 0)
+	excludes := make([]*regexp.Regexp, 0)
 
-	if len(include) > 0 {
-		slog.Warn("where include patterns, they will take precedence")
-		for _, i := range include {
+	if len(includePatterns) > 0 {
+		slog.Warn("include patterns are provided and will take precedence")
+		for _, i := range includePatterns {
 			slog.Info("including files matching pattern", "pattern", i)
 			if re, err := regexp.Compile(i); err != nil {
 				slog.Error("error compiling include pattern", "pattern", i, "error", err)
 			} else {
-				includePatterns = append(includePatterns, re)
+				includes = append(includes, re)
 			}
 		}
-	} else if len(exclude) > 0 {
-		for _, e := range exclude {
+	} else if len(excludePatterns) > 0 {
+		for _, e := range excludePatterns {
 			slog.Info("excluding files matching pattern", "pattern", e)
 			if re, err := regexp.Compile(e); err != nil {
 				slog.Error("error compiling exclude pattern", "pattern", e, "error", err)
 			} else {
-				excludePatterns = append(excludePatterns, re)
+				excludes = append(excludes, re)
 			}
 		}
 	}
@@ -53,9 +53,10 @@ func FileVisitor(exclude []string, include []string) repository.FileVisitor {
 
 		// fmt.Printf("exlcude: %d, include: %d\n", len(excludePatterns), len(includePatterns))
 
-		if len(includePatterns) > 0 {
+		//fmt.Printf("checking file %s\n", file.Name)
+		if len(includes) > 0 {
 			matched := false
-			for _, re := range includePatterns {
+			for _, re := range includes {
 				if re.MatchString(file.Name) {
 					matched = true
 					break
@@ -63,20 +64,20 @@ func FileVisitor(exclude []string, include []string) repository.FileVisitor {
 			}
 			if !matched {
 				slog.Info("skipping file not matching include patterns", "file", file.Name)
-				fmt.Printf("skipping file %s (no include pattern matches)\n", file.Name)
+				//fmt.Printf("skipping file %s (no include pattern matches)\n", file.Name)
 				return nil
 			}
-		} else if len(excludePatterns) > 0 {
-			for _, re := range excludePatterns {
+		} else if len(excludes) > 0 {
+			for _, re := range excludes {
 				if re.MatchString(file.Name) {
 					slog.Info("skipping file matching exclude pattern", "file", file.Name)
-					fmt.Printf("skipping file %s (eclude pattern matches)\n", file.Name)
+					fmt.Printf("skipping file %s (exclude pattern matches)\n", file.Name)
 					return nil
 				}
 			}
 		}
 
-		fmt.Printf("++++++++++++++++++++++++++++++++ %s ++++++++++++++++++++++++++++++++\n", printf.Green(file.Name))
+		fmt.Printf("================================ %s ================================\n", printf.Green(file.Name))
 
 		// 1. extract file contents into string
 		text, err := file.Contents()
@@ -114,7 +115,7 @@ func FileVisitor(exclude []string, include []string) repository.FileVisitor {
 
 			// Print the matched text in the highlight color
 			// text[start of current match : end of current match]
-			fmt.Print(printf.Blue(text[match[0]:match[1]]))
+			fmt.Print(printf.Magenta(text[match[0]:match[1]]))
 
 			// Update our position to the end of the current match
 			lastIdx = match[1]
@@ -125,9 +126,9 @@ func FileVisitor(exclude []string, include []string) repository.FileVisitor {
 		fmt.Print(text[lastIdx:])
 
 		// Add a final newline for clean terminal output
-		fmt.Println()
+		//fmt.Println()
 
-		fmt.Printf("-------------------------------- %s --------------------------------\n\n\n", printf.Green(file.Name))
+		fmt.Printf("-------------------------------- %s --------------------------------\n\n", printf.Green(file.Name))
 
 		// --- Configuration ---
 		// The regex pattern to search for.
