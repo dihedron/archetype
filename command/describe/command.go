@@ -16,8 +16,6 @@ import (
 // Describe is the command to describe the settings and parameters of an archetype.
 type Describe struct {
 	base.Command
-	Exclude []string `short:"e" long:"exclude" description:"The pattern of files to exclude from processing" optional:"true"`
-	Include []string `short:"i" long:"include" description:"The pattern of files to include from processing" optional:"true"`
 }
 
 // Execute is the main entry point for the describe command.

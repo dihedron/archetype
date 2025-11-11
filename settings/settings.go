@@ -43,5 +43,5 @@ type Settings struct {
 // unmarshalled by the rawdata.UnmarshalInto function (e.g., JSON, YAML), and
 // populates the fields of the Settings struct accordingly.
 func (s *Settings) UnmarshalFlag(value string) error {
-	return rawdata.UnmarshalInto(value, s)
+	return rawdata.UnmarshalInto("@"+value, s)
 }

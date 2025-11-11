@@ -37,6 +37,10 @@ const (
 func (cmd *Bootstrap) Execute(args []string) error {
 	slog.Info("executing Bootstrap command")
 
+	if len(cmd.Exclude) > 0 && len(cmd.Include) > 0 {
+		slog.Warn("both exclude and include patterns specified; include patterns will take precedence")
+		fmt.Fprintf(os.Stderr, "Both exclude and include patterns specified; include patterns will take precedence\n")
+	}
 	var options []repository.Option
 
 	slog.Debug("command configuration", "settings", logging.ToJSON(cmd.Settings), "directory", cmd.Directory)
@@ -146,7 +150,7 @@ func (cmd *Bootstrap) Execute(args []string) error {
 	fmt.Printf("---- %s ----\n", printf.Yellow("PARAMETERS"))
 
 	// 6. loop over the files and perform some processing
-	repo.ForEachFile(commit, FileVisitor(cmd.Directory, context))
+	repo.ForEachFile(commit, FileVisitor(cmd.Directory, context, cmd.Include, cmd.Exclude))
 
 	// 7. launch the script for post processing (TODO)
 

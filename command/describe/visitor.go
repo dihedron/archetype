@@ -45,7 +45,7 @@ func FileVisitor(excludePatterns []string, includePatterns []string) repository.
 	}
 
 	return func(file *object.File) error {
-
+		// 1. skip files in the archive metadata directory
 		if strings.HasPrefix(file.Name, ".archetype") {
 			slog.Info("skipping archetype files", "file", file.Name)
 			return nil
