@@ -8,6 +8,7 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
+// main is the entry point of the application.
 func main() {
 
 	defer cleanup()

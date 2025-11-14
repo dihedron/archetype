@@ -11,6 +11,8 @@ func toJSON(v any) string {
 	return string(s)
 }
 
+// DumpArgs is a template function that dumps the arguments passed to it to
+// standard error.
 func DumpArgs(args ...interface{}) (string, error) {
 	result := ""
 	if args != nil {

@@ -7,7 +7,7 @@ import (
 	"github.com/go-git/go-git/v6/plumbing"
 )
 
-// Branch retrieves a branch reference by its name.
+// Branch returns the reference to the given branch.
 func (r *Repository) Branch(name string) (*plumbing.Reference, error) {
 	if r == nil || r.repository == nil {
 		slog.Error("repository not initialized")
@@ -21,8 +21,9 @@ func (r *Repository) Branch(name string) (*plumbing.Reference, error) {
 	return reference, nil
 }
 
-// MainBranch retrieves the main branch reference, trying "main" first and
-// falling back to "master" if "main" is not found.
+// MainBranch returns the reference to the main branch of the repository.
+// It first tries to find a branch named "main", and if it does not exist,
+// it falls back to "master".
 func (r *Repository) MainBranch() (*plumbing.Reference, error) {
 	reference, err := r.Branch("main")
 	if errors.Is(err, plumbing.ErrReferenceNotFound) {
@@ -41,7 +42,7 @@ func (r *Repository) MainBranch() (*plumbing.Reference, error) {
 	return reference, nil
 }
 
-// Branches retrieves all branch references.
+// Branches returns all the branches in the repository.
 func (r *Repository) Branches() ([]*plumbing.Reference, error) {
 	var branches []*plumbing.Reference
 	err := r.ForEachBranch(func(reference *plumbing.Reference) error {
@@ -55,8 +56,8 @@ func (r *Repository) Branches() ([]*plumbing.Reference, error) {
 	return branches, nil
 }
 
-// ForEachBranch iterates over all branches in the repository and applies the
-// provided ReferenceVisitor function to each branch reference.
+// ForEachBranch iterates over all the branches in the repository and calls the
+// visitor function for each branch.
 func (r *Repository) ForEachBranch(visitor ReferenceVisitor) error {
 	if r == nil || r.repository == nil {
 		slog.Error("repository not initialized")

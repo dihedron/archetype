@@ -7,13 +7,12 @@ import (
 	"github.com/dihedron/archetype/metadata"
 )
 
-// Version is the command that prints information about the application
-// or plugin to the console; it support both compact and verbose mode.
+// Version is the command to print the version of the application.
 type Version struct {
 	Verbose bool `short:"v" long:"verbose" description:"Whether to print verbose information." optional:"yes"`
 }
 
-// Execute is the real implementation of the Version command.
+// Execute is the main entry point for the version command.
 func (cmd *Version) Execute(args []string) error {
 	slog.Debug("running version command")
 	if cmd.Verbose {

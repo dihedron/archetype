@@ -2,6 +2,7 @@ package extensions
 
 import "text/template"
 
+// FuncMap returns a map of all the custom functions that can be used in templates.
 func FuncMap() template.FuncMap {
 	return template.FuncMap{
 		"include":  Include,

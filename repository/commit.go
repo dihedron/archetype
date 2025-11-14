@@ -10,6 +10,8 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
+// Commit returns the commit object for the given tag or hash.
+// It supports resolving tags, long and short commit hashes, as well as 'latest' and 'HEAD'.
 func (r *Repository) Commit(tag string) (*object.Commit, error) {
 
 	// 1. select the right commit (based on tag or hash, in long or short form)
@@ -62,7 +64,8 @@ func (r *Repository) Commit(tag string) (*object.Commit, error) {
 	return commit, nil
 }
 
-// Commit retrieves a commit object by its hash.
+// CommitFromHash returns the commit object for the given hash.
+// It supports both long and short commit hashes.
 func (r *Repository) CommitFromHash(hash string) (*object.Commit, error) {
 	if r == nil || r.repository == nil {
 		slog.Error("repository not initialized")
@@ -89,8 +92,7 @@ func (r *Repository) CommitFromHash(hash string) (*object.Commit, error) {
 	return commit, nil
 }
 
-// CommitFromReference returns the Commit object that is pointed
-// to by a given reference.
+// CommitFromReference returns the commit object for the given reference.
 func (r *Repository) CommitFromReference(reference *plumbing.Reference) (*object.Commit, error) {
 	// ... retrieving the commit object
 	commit, err := r.repository.CommitObject(reference.Hash())
@@ -101,7 +103,7 @@ func (r *Repository) CommitFromReference(reference *plumbing.Reference) (*object
 	return commit, err
 }
 
-// Head retrieves the current HEAD reference of the repository.
+// Head returns the HEAD reference of the repository.
 func (r *Repository) Head() (*plumbing.Reference, error) {
 	if r == nil || r.repository == nil {
 		slog.Error("repository not initialized")
@@ -115,7 +117,7 @@ func (r *Repository) Head() (*plumbing.Reference, error) {
 	return reference, nil
 }
 
-// Commits retrieves all commit objects.
+// Commits returns all the commits in the repository.
 func (r *Repository) Commits() ([]*object.Commit, error) {
 	var commits []*object.Commit
 	err := r.ForEachCommit(func(commit *object.Commit) error {
@@ -129,8 +131,8 @@ func (r *Repository) Commits() ([]*object.Commit, error) {
 	return commits, nil
 }
 
-// ForEachCommit iterates over all commits in the repository and applies the
-// provided CommitVisitor function to each commit.
+// ForEachCommit iterates over all the commits in the repository and calls the
+// visitor function for each commit.
 func (r *Repository) ForEachCommit(visitor CommitVisitor) error {
 	if r == nil || r.repository == nil {
 		slog.Error("repository not initialized")
