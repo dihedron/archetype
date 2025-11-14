@@ -97,29 +97,3 @@ func (cmd *Describe) Execute(args []string) error {
 	return nil
 
 }
-
-// // VisitFile is a callback function that is invoked for each file in the repository.
-// func VisitFile(file *object.File) error {
-// 	fmt.Printf("%v  %9d  %s    %s\n", file.Mode, file.Size, file.Hash.String(), file.Name)
-
-// 	if file.Name == ".archetype/metadata.yml" {
-// 		reader, err := file.Blob.Reader()
-// 		if err != nil {
-// 			return err
-// 		}
-// 		defer reader.Close()
-
-// 		scanner := bufio.NewScanner(reader)
-// 		// optionally, resize scanner's capacity for lines over 64K, see next example
-// 		for scanner.Scan() {
-// 			fmt.Println(scanner.Text())
-// 		}
-
-// 		if err := scanner.Err(); err != nil {
-// 			slog.Error("error scanning file", "error", err)
-// 			return err
-// 		}
-// 	}
-
-// 	return nil
-// }
