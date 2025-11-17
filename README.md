@@ -1,5 +1,7 @@
 # archetype
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/dihedron/archetype)](https://goreportcard.com/report/github.com/dihedron/archetype)
+
 Initialise a new repository in the current directory from a template stored in a Git repository.
 
 ## How to test
