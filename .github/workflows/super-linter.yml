@@ -1,0 +1,13 @@
+name: 'Super-Linter'
+
+on: [push, pull_request]
+
+jobs:
+  lint-codebase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint Code Base
+        uses: github/super-linter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
