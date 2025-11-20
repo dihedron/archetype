@@ -1,27 +1,20 @@
-package bootstrap
+package prepare
 
 import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 
 	"github.com/dihedron/archetype/command/base"
-	"github.com/dihedron/archetype/logging"
 	"github.com/dihedron/archetype/pointer"
-	"github.com/dihedron/archetype/printf"
 	"github.com/dihedron/archetype/repository"
-	"github.com/dihedron/archetype/settings"
-	"gopkg.in/yaml.v3"
 )
 
-// Bootstrap is the command to initialise a new repository from an archetype.
-type Bootstrap struct {
+// Prepare is the command to prepare a file by escaping all Golang-template directives.
+type Prepare struct {
 	base.Command
-	// Settings is the path to the settings file to use for saturating the archetype variables.
-	Settings settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" required:"true"`
-	// Directory is the path to the directory to use for the archetype files.
-	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/output"`
+	// Directory is the path to the directory to use to store the "prepared" files.
+	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/prepared"`
 }
 
 const (
@@ -34,16 +27,14 @@ const (
 // It clones the archetype repository, validates the provided settings against the archetype's metadata,
 // and then processes the files in the repository, treating them as templates and executing them with the provided settings.
 // The resulting files are written to the output directory.
-func (cmd *Bootstrap) Execute(args []string) error {
-	slog.Info("executing Bootstrap command")
+func (cmd *Prepare) Execute(args []string) error {
+	slog.Info("executing Prepare command")
 
 	if len(cmd.Exclude) > 0 && len(cmd.Include) > 0 {
 		slog.Warn("both exclude and include patterns specified; include patterns will take precedence")
 		fmt.Fprintf(os.Stderr, "Both exclude and include patterns specified; include patterns will take precedence\n")
 	}
 	var options []repository.Option
-
-	slog.Debug("command configuration", "settings", logging.ToJSON(cmd.Settings), "directory", cmd.Directory)
 
 	// 1. check that the repository URL is specified
 	if cmd.URL == "" {
@@ -99,58 +90,8 @@ func (cmd *Bootstrap) Execute(args []string) error {
 	// 	return nil
 	// })
 
-	// 6. validate the user-provided settings against the remote archetype metadata
-	file, err := commit.File(".archetype/metadata.yml")
-	if err != nil {
-		slog.Error("failed to get archetype metadata file from repository", "error", err)
-		return fmt.Errorf("failed to get archetype metadata file from repository: %w", err)
-	}
-	var contents string
-	if contents, err = file.Contents(); err != nil {
-		slog.Error("failed to get contents of archetype metadata file", "error", err)
-		return err
-	}
-	var metadata settings.Metadata
-	if err := yaml.Unmarshal([]byte(contents), &metadata); err != nil {
-		slog.Error("failed to unmarshal archetype metadata file", "error", err)
-		return err
-	}
-	slog.Info("loaded archetype metadata", "version", metadata.Version, "parameters", logging.ToJSON(metadata.Parameters))
-	if cmd.Settings.Version != metadata.Version {
-		slog.Error("unsupported settings version", "version", cmd.Settings.Version, "expected", metadata.Version)
-		return fmt.Errorf("unsupported settings version: %d (expected %d)", cmd.Settings.Version, metadata.Version)
-	}
-	// 7. load and validate the parameters from the settings
-	context := map[string]any{}
-	fmt.Printf("---- %s ----\n", printf.Yellow("PARAMETERS"))
-	for key, value := range cmd.Settings.Parameters {
-		meta, ok := metadata.Parameters[key]
-		if !ok {
-			slog.Error("unsupported parameter in settings", "parameter", key)
-			return fmt.Errorf("unsupported parameter in settings: %s", key)
-		}
-		expected := strings.ReplaceAll(meta.Type, "interface {}", "any")
-		got := strings.ReplaceAll(fmt.Sprintf("%T", value), "interface {}", "any")
-		if expected != got {
-			slog.Error("parameter type mismatch", "parameter", key, "expected", meta.Type, "got", fmt.Sprintf("%T", value))
-			return fmt.Errorf("parameter type mismatch for '%s': expected %s, got %s", key, meta.Type, fmt.Sprintf("%T", value))
-		}
-		if value == nil && meta.Default != nil {
-			context[key] = meta.Default
-		} else {
-			context[key] = value
-		}
-		fmt.Printf("'%s' => '%s' (type: %s)\n",
-			printf.Green(key),
-			fmt.Sprintf("%v", printf.Green(context[key])),
-			printf.Blue(fmt.Sprintf("%T", value)),
-		)
-		//fmt.Sprintf("%T", printf.Blue(parameter.Value)))
-	}
-	fmt.Printf("---- %s ----\n", printf.Yellow("PARAMETERS"))
-
 	// 6. loop over the files and perform some processing
-	repo.ForEachFile(commit, FileVisitor(cmd.Directory, context, cmd.Include, cmd.Exclude))
+	repo.ForEachFile(commit, FileVisitor(cmd.Directory, cmd.Include, cmd.Exclude))
 
 	// 7. launch the script for post processing (TODO)
 

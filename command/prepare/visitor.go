@@ -1,4 +1,4 @@
-package bootstrap
+package prepare
 
 import (
 	"bytes"
@@ -8,10 +8,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
-	"text/template"
 
-	"github.com/Masterminds/sprig/v3"
-	"github.com/dihedron/archetype/extensions"
 	"github.com/dihedron/archetype/printf"
 	"github.com/dihedron/archetype/repository"
 	"github.com/go-git/go-git/v6/plumbing/object"
@@ -22,7 +19,9 @@ import (
 // It skips files in the .archetype directory, and for all other files, it reads their content, parses them as text/template templates,
 // executes them with the provided context, and writes the output to the corresponding path in the destination directory.
 // It also adds the Sprig and custom template functions to the template.
-func FileVisitor(directory string, context any, includePatterns []string, excludePatterns []string) repository.FileVisitor {
+func FileVisitor(directory string, excludePatterns []string, includePatterns []string) repository.FileVisitor {
+
+	re := regexp.MustCompile(`(?s){{.*?}}`)
 
 	includes := make([]*regexp.Regexp, 0)
 	excludes := make([]*regexp.Regexp, 0)
@@ -49,29 +48,15 @@ func FileVisitor(directory string, context any, includePatterns []string, exclud
 	}
 
 	return func(file *object.File) error {
-
 		// 1. skip files in the archive metadata directory
 		if strings.HasPrefix(file.Name, ".archetype") {
 			slog.Info("skipping archetype files", "file", file.Name)
 			return nil
 		}
 
-		// 2. process the filename as a template; the name of the file may be itself a template
-		// and needs being renamed according to the values in the context; for instance, a file
-		// named {{.ProjectName}}-config.yml should be rendered as myapp-config.yml if the
-		// ProjectName in the context is "myapp"
-		filename, err := template.New("filename").Parse(file.Name)
-		if err != nil {
-			slog.Error("cannot parse filename template", "template", file.Name, "error", err)
-			return err
-		}
-		var buffer bytes.Buffer
-		if err := filename.Execute(&buffer, context); err != nil {
-			slog.Error("cannot execute filename template", "template", file.Name, "error", err)
-			return err
-		}
+		// fmt.Printf("exclude: %d, include: %d\n", len(excludePatterns), len(includePatterns))
 
-		// 3. check include/exclude patterns to include/skip the file
+		// 2. check include/exclude patterns to include/skip the file
 		if len(includes) > 0 {
 			matched := false
 			for _, re := range includes {
@@ -82,7 +67,7 @@ func FileVisitor(directory string, context any, includePatterns []string, exclud
 			}
 			if !matched {
 				slog.Info("skipping file not matching include patterns", "file", file.Name)
-				fmt.Printf("skipping file %s (no include pattern matches)\n", file.Name)
+				//fmt.Printf("skipping file %s (no include pattern matches)\n", file.Name)
 				return nil
 			}
 		} else if len(excludes) > 0 {
@@ -94,56 +79,62 @@ func FileVisitor(directory string, context any, includePatterns []string, exclud
 				}
 			}
 		}
-		fmt.Printf("processing file %s (mode: %v, size: %d, hash: %s)... ", file.Name, file.Mode, file.Size, file.Hash.String())
 
-		// 4. create the name of the output file
-		output := path.Join(path.Clean(directory), buffer.String())
+		// 3. create the name of the output file
+		output := path.Join(path.Clean(directory), file.Name)
 		//fmt.Printf("%v  %9d  %s => ", file.Mode, file.Size, file.Name)
 		//fmt.Printf("processing file %s (mode: %v, size: %d, hash: %s) as %s...\n", file.Name, file.Mode, file.Size, file.Hash.String(), output)
 		//fmt.Printf("%s (mode: %v, size: %d): ", file.Name, file.Mode, file.Size)
 		slog.Info("visiting file", "file", file.Name, "output", output, "mode", file.Mode, "size", file.Size, "output", output)
 
-		// reader2, err := file.Blob.Reader()
-		// if err != nil {
-		// 	fmt.Printf("%s getting file reader: %v\n", red("ERROR"), err)
-		// 	slog.Error("error getting file reader", "file", file.Name, "error", err)
-		// 	return err
-		// }
-		// defer reader2.Close()
-
-		// 5. read the file contents from git
-		contents, err := file.Contents()
+		// 4. extract file contents into string
+		text, err := file.Contents()
 		if err != nil {
 			fmt.Printf("%s getting file contents: %v\n", printf.Red("ERROR"), err)
 			slog.Error("error getting file contents", "file", file.Name, "error", err)
 			return err
 		}
 
-		// 6. populate the functions map
-		functions := template.FuncMap{}
-		for k, v := range extensions.FuncMap() {
-			functions[k] = v
-		}
-		for k, v := range sprig.FuncMap() {
-			functions[k] = v
+		// 5. Find all matches and their indexes.
+		// FindAllStringIndex returns a slice of [start, end] pairs.
+		// The -1 argument means "find all matches".
+		matches := re.FindAllStringIndex(text, -1)
+
+		// 6. Check if any matches were found.
+		if len(matches) == 0 {
+			slog.Debug("no template actions found in file", "file", file.Name)
+			fmt.Println(text)
+			return nil
 		}
 
-		// 7. parse the file as a template
-		main := path.Base(file.Name)
-		templates, err := template.New(main).Funcs(functions).Parse(contents)
-		if err != nil {
-			slog.Error("cannot parse template file", "file", file.Name, "error", err)
-			fmt.Printf("%s parsing template: %v\n", printf.Red("ERROR"), err)
-			return fmt.Errorf("error parsing template file %v: %w", file.Name, err)
+		slog.Debug("found matches in file", "file", file.Name, "matches", len(matches))
+
+		// 7. Iterate through the string, printing in color.
+		// We'll use lastIdx to keep track of where the last match ended.
+		lastIdx := 0
+		var buffer bytes.Buffer
+		for _, match := range matches {
+			// match[0] is the start index of the match
+			// match[1] is the end index of the match
+
+			// Print the part of the string *before* the match
+			// This is text[lastIdx (end of last match) : start of current match]
+			fmt.Fprint(&buffer, text[lastIdx:match[0]])
+
+			// Print the matched text in the highlight color
+			// text[start of current match : end of current match]
+			fmt.Fprint(&buffer, printf.Magenta(text[match[0]:match[1]]))
+
+			// Update our position to the end of the current match
+			lastIdx = match[1]
 		}
 
-		// 8. execute the template
-		buffer.Reset()
-		if err := templates.ExecuteTemplate(&buffer, main, context); err != nil {
-			slog.Error("cannot apply data to template", "error", err, "type", fmt.Sprintf("%T", err))
-			fmt.Printf("%s applying data to template: %v (%T)\n", printf.Red("ERROR"), err, err)
-			return fmt.Errorf("error applying data to template: %w", err)
-		}
+		// 5. Print any remaining text *after* the last match
+		// This is the text from the end of the last match to the end of the string.
+		fmt.Fprint(&buffer, text[lastIdx:])
+
+		// Add a final newline for clean terminal output
+		//fmt.Println()
 
 		// 9. output the rendered content
 		if err = os.WriteFile(output, buffer.Bytes(), os.FileMode(file.Mode)); err != nil {
@@ -152,7 +143,9 @@ func FileVisitor(directory string, context any, includePatterns []string, exclud
 			return fmt.Errorf("error writing file %s: %w", file.Name, err)
 		}
 		fmt.Printf("%s (saved as %s)\n", printf.Green("SUCCESS"), output)
-		//fmt.Printf("---- rendered content of %s ----\n%s\n---- end of rendered content of %s ----\n", file.Name, buffer.String(), file.Name)
+
+		//fmt.Printf("-------------------------------- %s --------------------------------\n\n", printf.Green(file.Name))
+
 		return nil
 	}
 }
