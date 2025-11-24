@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/dihedron/rawdata v1.0.2
 	github.com/fatih/color v1.18.0
-	github.com/go-git/go-git/v6 v6.0.0-20251123162143-36fa81975a20
+	github.com/go-git/go-git/v6 v6.0.0-20251123213212-d5ca7ab6ebf9
 	github.com/jedib0t/go-pretty/v6 v6.7.5
 	github.com/jessevdk/go-flags v1.6.1
 	gopkg.in/yaml.v3 v3.0.1
