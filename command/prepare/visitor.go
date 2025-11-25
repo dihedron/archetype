@@ -3,6 +3,7 @@ package prepare
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path"
@@ -87,57 +88,78 @@ func FileVisitor(directory string, excludePatterns []string, includePatterns []s
 		//fmt.Printf("%s (mode: %v, size: %d): ", file.Name, file.Mode, file.Size)
 		slog.Info("visiting file", "file", file.Name, "output", output, "mode", file.Mode, "size", file.Size, "output", output)
 
-		// 4. extract file contents into string
-		text, err := file.Contents()
-		if err != nil {
-			fmt.Printf("%s getting file contents: %v\n", printf.Red("ERROR"), err)
-			slog.Error("error getting file contents", "file", file.Name, "error", err)
-			return err
+		var data []byte
+
+		// 4. check if file is binary and skip processing if so
+		if isBinary, _ := file.IsBinary(); isBinary {
+			slog.Debug("file is binary, skipping processing and copying as is", "file", file.Name, "output", output)
+			reader, err := file.Reader()
+			if err != nil {
+				slog.Error("error getting file reader", "file", file.Name, "error", err)
+				return err
+			}
+			defer reader.Close()
+			if data, err = io.ReadAll(reader); err != nil {
+				slog.Error("error reading file data", "file", file.Name, "error", err)
+				return nil
+			}
+			slog.Debug("all binary data read for file", "file", file.Name)
+		} else {
+
+			// 4. extract file contents into string
+			text, err := file.Contents()
+			if err != nil {
+				fmt.Printf("%s getting file contents: %v\n", printf.Red("ERROR"), err)
+				slog.Error("error getting file contents", "file", file.Name, "error", err)
+				return err
+			}
+
+			// 5. Find all matches and their indexes.
+			// FindAllStringIndex returns a slice of [start, end] pairs.
+			// The -1 argument means "find all matches".
+			matches := re.FindAllStringIndex(text, -1)
+
+			// 6. Check if any matches were found.
+			if len(matches) == 0 {
+				slog.Debug("no template actions found in file", "file", file.Name)
+				fmt.Println(text)
+				return nil
+			}
+
+			slog.Debug("found matches in file", "file", file.Name, "matches", len(matches))
+
+			// 7. Iterate through the string, printing in color.
+			// We'll use lastIdx to keep track of where the last match ended.
+			lastIdx := 0
+			var buffer bytes.Buffer
+			for _, match := range matches {
+				// match[0] is the start index of the match
+				// match[1] is the end index of the match
+
+				// Print the part of the string *before* the match
+				// This is text[lastIdx (end of last match) : start of current match]
+				fmt.Fprint(&buffer, text[lastIdx:match[0]])
+
+				// Print the matched text in the highlight color
+				// text[start of current match : end of current match]
+				fmt.Fprint(&buffer, printf.Magenta(text[match[0]:match[1]]))
+
+				// Update our position to the end of the current match
+				lastIdx = match[1]
+			}
+
+			// 5. Print any remaining text *after* the last match
+			// This is the text from the end of the last match to the end of the string.
+			fmt.Fprint(&buffer, text[lastIdx:])
+
+			data = buffer.Bytes()
+			// Add a final newline for clean terminal output
+			//fmt.Println()
+
 		}
-
-		// 5. Find all matches and their indexes.
-		// FindAllStringIndex returns a slice of [start, end] pairs.
-		// The -1 argument means "find all matches".
-		matches := re.FindAllStringIndex(text, -1)
-
-		// 6. Check if any matches were found.
-		if len(matches) == 0 {
-			slog.Debug("no template actions found in file", "file", file.Name)
-			fmt.Println(text)
-			return nil
-		}
-
-		slog.Debug("found matches in file", "file", file.Name, "matches", len(matches))
-
-		// 7. Iterate through the string, printing in color.
-		// We'll use lastIdx to keep track of where the last match ended.
-		lastIdx := 0
-		var buffer bytes.Buffer
-		for _, match := range matches {
-			// match[0] is the start index of the match
-			// match[1] is the end index of the match
-
-			// Print the part of the string *before* the match
-			// This is text[lastIdx (end of last match) : start of current match]
-			fmt.Fprint(&buffer, text[lastIdx:match[0]])
-
-			// Print the matched text in the highlight color
-			// text[start of current match : end of current match]
-			fmt.Fprint(&buffer, printf.Magenta(text[match[0]:match[1]]))
-
-			// Update our position to the end of the current match
-			lastIdx = match[1]
-		}
-
-		// 5. Print any remaining text *after* the last match
-		// This is the text from the end of the last match to the end of the string.
-		fmt.Fprint(&buffer, text[lastIdx:])
-
-		// Add a final newline for clean terminal output
-		//fmt.Println()
 
 		// 9. output the rendered content
-		if err = os.WriteFile(output, buffer.Bytes(), os.FileMode(file.Mode)); err != nil {
+		if err := os.WriteFile(output, data, os.FileMode(file.Mode)); err != nil {
 			slog.Error("error writing file", "file", file.Name, "error", err)
 			fmt.Printf("%s writing file as %s: %v\n", printf.Red("ERROR"), output, err)
 			return fmt.Errorf("error writing file %s: %w", file.Name, err)

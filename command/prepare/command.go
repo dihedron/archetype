@@ -91,7 +91,7 @@ func (cmd *Prepare) Execute(args []string) error {
 	// })
 
 	// 6. loop over the files and perform some processing
-	repo.ForEachFile(commit, FileVisitor(cmd.Directory, cmd.Include, cmd.Exclude))
+	repo.ForEachFile(commit, FileVisitor(cmd.Directory, cmd.Exclude, cmd.Include))
 
 	// 7. launch the script for post processing (TODO)
 
