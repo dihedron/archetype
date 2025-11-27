@@ -15,6 +15,13 @@ import (
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
+var (
+	RealBra = "{{"
+	SafeBra = "{-{"
+	RealKet = "}}"
+	SafeKet = "}-}"
+)
+
 // FileVisitor returns a function that processes files in a directory using the provided context for template rendering.
 // The returned function is of type repository.FileVisitor, which is a callback that is invoked for each file in the repository.
 // It skips files in the .archetype directory, and for all other files, it reads their content, parses them as text/template templates,
@@ -101,7 +108,7 @@ func FileVisitor(directory string, excludePatterns []string, includePatterns []s
 			defer reader.Close()
 			if data, err = io.ReadAll(reader); err != nil {
 				slog.Error("error reading file data", "file", file.Name, "error", err)
-				return nil
+				return err
 			}
 			slog.Debug("all binary data read for file", "file", file.Name)
 		} else {
@@ -142,7 +149,8 @@ func FileVisitor(directory string, excludePatterns []string, includePatterns []s
 
 				// Print the matched text in the highlight color
 				// text[start of current match : end of current match]
-				fmt.Fprint(&buffer, printf.Magenta(text[match[0]:match[1]]))
+				//fmt.Fprint(&buffer, printf.Magenta(text[match[0]:match[1]]))
+				fmt.Fprint(&buffer, strings.Replace(strings.Replace(text[match[0]:match[1]], RealBra, SafeBra, 1), RealKet, SafeKet, 1))
 
 				// Update our position to the end of the current match
 				lastIdx = match[1]
