@@ -1,4 +1,4 @@
-package prepare
+package unescape
 
 import (
 	"fmt"
@@ -10,11 +10,11 @@ import (
 	"github.com/dihedron/archetype/repository"
 )
 
-// Prepare is the command to prepare a file by escaping all Golang-template directives.
-type Prepare struct {
+// Unescape is the command to unescape all Golang-template directives in a file.
+type Unescape struct {
 	base.Command
-	// Directory is the path to the directory to use to store the "prepared" files.
-	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/prepared"`
+	// Directory is the path to the directory to use to store the "unescaped" files.
+	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/escaped"`
 }
 
 const (
@@ -23,12 +23,12 @@ const (
 	DefaultFilePermissions      = 0644
 )
 
-// Execute is the main entry point for the initialise command.
-// It clones the archetype repository, validates the provided settings against the archetype's metadata,
-// and then processes the files in the repository, treating them as templates and executing them with the provided settings.
+// Execute is the main entry point for the unescape command.
+// It unescapes all Golang-template directives in the files in the
+// repository.
 // The resulting files are written to the output directory.
-func (cmd *Prepare) Execute(args []string) error {
-	slog.Info("executing Prepare command")
+func (cmd *Unescape) Execute(args []string) error {
+	slog.Info("executing Unescape command")
 
 	if len(cmd.Exclude) > 0 && len(cmd.Include) > 0 {
 		slog.Warn("both exclude and include patterns specified; include patterns will take precedence")

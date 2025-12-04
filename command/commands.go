@@ -3,7 +3,8 @@ package command
 import (
 	"github.com/dihedron/archetype/command/apply"
 	"github.com/dihedron/archetype/command/describe"
-	"github.com/dihedron/archetype/command/prepare"
+	"github.com/dihedron/archetype/command/escape"
+	"github.com/dihedron/archetype/command/unescape"
 	"github.com/dihedron/archetype/command/version"
 )
 
@@ -15,9 +16,12 @@ type Commands struct {
 	// Describe runs the Describe command which displays the settings needed for the specific project.
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
 	Describe describe.Describe `command:"describe" alias:"descr" alias:"d" description:"Describe the necessary settings"`
-	// Prepare runs the Prepare command which sets up the necessary files and directories.
+	// Escape runs the Escape command which escapes all Golang-template directives in the files in the repository.
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
-	Prepare prepare.Prepare `command:"prepare" alias:"prep" alias:"p" description:"Prepare the template files by escaping {{ and }}"`
+	Escape escape.Escape `command:"escape" alias:"esc" alias:"e" description:"Escape all Golang-template directives in the files in the repository"`
+	// Escape runs the Escape command which escapes all Golang-template directives in the files in the repository.
+	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
+	Unescape unescape.Unescape `command:"unescape" alias:"unesc" alias:"u" description:"Unescape all Golang-template directives in the files in the repository"`
 	// Version prints the application version information and exits.
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
 	Version version.Version `command:"version" alias:"ver" alias:"v" description:"Show the command version and exit"`

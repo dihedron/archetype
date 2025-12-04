@@ -1,4 +1,4 @@
-package prepare
+package unescape
 
 import (
 	"bytes"
@@ -22,7 +22,7 @@ import (
 // It also adds the Sprig and custom template functions to the template.
 func FileVisitor(directory string, excludePatterns []string, includePatterns []string) repository.FileVisitor {
 
-	re := regexp.MustCompile(`(?s){{.*?}}`)
+	re := regexp.MustCompile(`(?s){-{.*?}-}`)
 
 	includes := make([]*regexp.Regexp, 0)
 	excludes := make([]*regexp.Regexp, 0)
