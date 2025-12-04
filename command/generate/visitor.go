@@ -1,4 +1,4 @@
-package apply
+package generate
 
 import (
 	"bytes"

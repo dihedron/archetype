@@ -7,12 +7,20 @@ import (
 	"log/slog"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/dihedron/archetype/printf"
 	"github.com/dihedron/archetype/repository"
 	"github.com/go-git/go-git/v6/plumbing/object"
+)
+
+var (
+	RealBra = "{{"
+	SafeBra = "{-{"
+	RealKet = "}}"
+	SafeKet = "}-}"
 )
 
 // FileVisitor returns a function that processes files in a directory using the provided context for template rendering.
@@ -49,9 +57,13 @@ func FileVisitor(directory string, excludePatterns []string, includePatterns []s
 	}
 
 	return func(file *object.File) error {
+
+		fmt.Printf("%-50s", printf.Magenta(file.Name))
+
 		// 1. skip files in the archive metadata directory
 		if strings.HasPrefix(file.Name, ".archetype") {
 			slog.Info("skipping archetype files", "file", file.Name)
+			fmt.Printf(" (archetype)   %s\n", printf.Yellow("skipped"))
 			return nil
 		}
 
@@ -69,13 +81,14 @@ func FileVisitor(directory string, excludePatterns []string, includePatterns []s
 			if !matched {
 				slog.Info("skipping file not matching include patterns", "file", file.Name)
 				//fmt.Printf("skipping file %s (no include pattern matches)\n", file.Name)
+				fmt.Printf(" (not included) %s\n", printf.Yellow("skipped"))
 				return nil
 			}
 		} else if len(excludes) > 0 {
 			for _, re := range excludes {
 				if re.MatchString(file.Name) {
 					slog.Info("skipping file matching exclude pattern", "file", file.Name)
-					fmt.Printf("skipping file %s (exclude pattern matches)\n", file.Name)
+					fmt.Printf("(excluded)    %s\n", printf.Yellow("skipped"))
 					return nil
 				}
 			}
@@ -83,10 +96,7 @@ func FileVisitor(directory string, excludePatterns []string, includePatterns []s
 
 		// 3. create the name of the output file
 		output := path.Join(path.Clean(directory), file.Name)
-		//fmt.Printf("%v  %9d  %s => ", file.Mode, file.Size, file.Name)
-		//fmt.Printf("processing file %s (mode: %v, size: %d, hash: %s) as %s...\n", file.Name, file.Mode, file.Size, file.Hash.String(), output)
-		//fmt.Printf("%s (mode: %v, size: %d): ", file.Name, file.Mode, file.Size)
-		slog.Info("visiting file", "file", file.Name, "output", output, "mode", file.Mode, "size", file.Size, "output", output)
+		slog.Info("visiting file", "file", file.Name, "output", output, "mode", file.Mode, "size", file.Size)
 
 		var data []byte
 
@@ -96,21 +106,25 @@ func FileVisitor(directory string, excludePatterns []string, includePatterns []s
 			reader, err := file.Reader()
 			if err != nil {
 				slog.Error("error getting file reader", "file", file.Name, "error", err)
+				fmt.Printf("%s (%s)\n", printf.Red("error"), printf.Blue(fmt.Sprintf("%v", err)))
 				return err
 			}
 			defer reader.Close()
 			if data, err = io.ReadAll(reader); err != nil {
 				slog.Error("error reading file data", "file", file.Name, "error", err)
-				return nil
+				fmt.Printf("%s (%s)\n", printf.Red("error"), printf.Blue(fmt.Sprintf("%v", err)))
+				return err
 			}
 			slog.Debug("all binary data read for file", "file", file.Name)
+
+			fmt.Printf(" (binary)      %-12s", printf.Green("copied as is"))
 		} else {
 
 			// 4. extract file contents into string
 			text, err := file.Contents()
 			if err != nil {
-				fmt.Printf("%s getting file contents: %v\n", printf.Red("ERROR"), err)
 				slog.Error("error getting file contents", "file", file.Name, "error", err)
+				fmt.Printf("%s (%s)\n", printf.Red("error"), printf.Blue(fmt.Sprintf("%v", err)))
 				return err
 			}
 
@@ -122,52 +136,61 @@ func FileVisitor(directory string, excludePatterns []string, includePatterns []s
 			// 6. Check if any matches were found.
 			if len(matches) == 0 {
 				slog.Debug("no template actions found in file", "file", file.Name)
-				fmt.Println(text)
-				return nil
+				data = []byte(text)
+				fmt.Printf("(text)        %-12s", printf.Green("copied as is"))
+			} else {
+
+				slog.Debug("found matches in file", "file", file.Name, "matches", len(matches))
+
+				// 7. Iterate through the string, printing in color.
+				// We'll use lastIdx to keep track of where the last match ended.
+				lastIdx := 0
+				var buffer bytes.Buffer
+				for _, match := range matches {
+					// match[0] is the start index of the match
+					// match[1] is the end index of the match
+
+					// Print the part of the string *before* the match
+					// This is text[lastIdx (end of last match) : start of current match]
+					fmt.Fprint(&buffer, text[lastIdx:match[0]])
+
+					// Print the matched text in the highlight color
+					// text[start of current match : end of current match]
+					//fmt.Fprint(&buffer, printf.Magenta(text[match[0]:match[1]]))
+					fmt.Fprint(&buffer, strings.Replace(strings.Replace(text[match[0]:match[1]], RealBra, SafeBra, 1), RealKet, SafeKet, 1))
+
+					// Update our position to the end of the current match
+					lastIdx = match[1]
+				}
+
+				// 5. Print any remaining text *after* the last match
+				// This is the text from the end of the last match to the end of the string.
+				fmt.Fprint(&buffer, text[lastIdx:])
+
+				data = buffer.Bytes()
+				// Add a final newline for clean terminal output
+				//fmt.Println()
+				fmt.Printf("(text)        %-12s", printf.Red("sanitised"))
 			}
-
-			slog.Debug("found matches in file", "file", file.Name, "matches", len(matches))
-
-			// 7. Iterate through the string, printing in color.
-			// We'll use lastIdx to keep track of where the last match ended.
-			lastIdx := 0
-			var buffer bytes.Buffer
-			for _, match := range matches {
-				// match[0] is the start index of the match
-				// match[1] is the end index of the match
-
-				// Print the part of the string *before* the match
-				// This is text[lastIdx (end of last match) : start of current match]
-				fmt.Fprint(&buffer, text[lastIdx:match[0]])
-
-				// Print the matched text in the highlight color
-				// text[start of current match : end of current match]
-				fmt.Fprint(&buffer, printf.Magenta(text[match[0]:match[1]]))
-
-				// Update our position to the end of the current match
-				lastIdx = match[1]
-			}
-
-			// 5. Print any remaining text *after* the last match
-			// This is the text from the end of the last match to the end of the string.
-			fmt.Fprint(&buffer, text[lastIdx:])
-
-			data = buffer.Bytes()
-			// Add a final newline for clean terminal output
-			//fmt.Println()
 
 		}
 
-		// 9. output the rendered content
+		// 9. create the directory structure if it does not exist
+		err := os.MkdirAll(filepath.Dir(output), 0770)
+		if err != nil {
+			slog.Error("error creating directory structure", "path", filepath.Dir(output), "error", err)
+			fmt.Printf("%s (%s)\n", printf.Red("error"), printf.Blue(fmt.Sprintf("%v", err)))
+			return err
+		}
+
+		// 10. output the rendered content
 		if err := os.WriteFile(output, data, os.FileMode(file.Mode)); err != nil {
 			slog.Error("error writing file", "file", file.Name, "error", err)
-			fmt.Printf("%s writing file as %s: %v\n", printf.Red("ERROR"), output, err)
+			//fmt.Printf("%s writing file as %s: %v\n", printf.Red("ERROR"), output, err)
+			fmt.Printf("%s (%s)\n", printf.Red("error"), printf.Blue(fmt.Sprintf("%v", err)))
 			return fmt.Errorf("error writing file %s: %w", file.Name, err)
 		}
-		fmt.Printf("%s (saved as %s)\n", printf.Green("SUCCESS"), output)
-
-		//fmt.Printf("-------------------------------- %s --------------------------------\n\n", printf.Green(file.Name))
-
+		fmt.Printf(" and saved as %s\n", printf.Magenta(output))
 		return nil
 	}
 }
