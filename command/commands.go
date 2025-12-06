@@ -10,9 +10,9 @@ import (
 
 // Commands is the main container for all the commands of the application.
 type Commands struct {
-	// Apply runs the Apply command
+	// Generate runs the Generate command
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
-	Apply generate.Apply `command:"apply" alias:"init" alias:"a" description:"Apply the archetype to the project"`
+	Generate generate.Generate `command:"generate" alias:"init" alias:"apply" alias:"g" alias:"i" alias:"a" description:"Generate the project from the archetype"`
 	// Describe runs the Describe command which displays the settings needed for the specific project.
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
 	Describe describe.Describe `command:"describe" alias:"descr" alias:"d" description:"Describe the necessary settings"`

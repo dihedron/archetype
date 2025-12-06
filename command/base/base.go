@@ -12,16 +12,16 @@ import (
 // command line options like the repository URL, the tag to use, and all
 // the authentication-related options.
 type Command struct {
-	URL              string   `short:"r" long:"repository" description:"The Git repository containing the template" required:"true" default:"."`
-	Tag              *string  `short:"t" long:"tag" description:"The tag or commit to clone" optional:"true" default:"latest"`
-	Exclude          []string `short:"e" long:"exclude" description:"The pattern of files to exclude from processing" optional:"true"`
-	Include          []string `short:"i" long:"include" description:"The pattern of files to include from processing" optional:"true"`
-	Token            *string  `short:"T" long:"token" description:"The personal access token for authentication" optional:"true"`
-	Username         *string  `short:"U" long:"username" description:"The username for authentication" optional:"true"`
-	Password         *string  `short:"P" long:"password" description:"The password for authentication" optional:"true"`
-	SSHKey           *string  `short:"K" long:"sshkey" description:"The SSH key for authentication" optional:"true"`
-	UseDefaultSSHKey bool     `short:"D" long:"with-default-ssh-key" description:"Use default SSH key for authentication" optional:"true"`
-	UseSSHAgent      bool     `short:"A" long:"with-ssh-agent" description:"Use SSH agent for authentication" optional:"true"`
+	URL              string   `short:"r" long:"repository" description:"The Git repository containing the template" required:"true" default:"." env:"ARCHETYPE_REPOSITORY_URL"`
+	Tag              *string  `short:"t" long:"tag" description:"The tag or commit to clone" optional:"true" default:"latest" env:"ARCHETYPE_REPOSITORY_TAG"`
+	Exclude          []string `short:"e" long:"exclude" description:"The pattern of files to exclude from processing" optional:"true" default:"" env:"ARCHETYPE_EXCLUDE"`
+	Include          []string `short:"i" long:"include" description:"The pattern of files to include from processing" optional:"true" default:"" env:"ARCHETYPE_INCLUDE"`
+	Token            *string  `short:"T" long:"token" description:"The personal access token for authentication" optional:"true" env:"ARCHETYPE_AUTH_TOKEN"`
+	Username         *string  `short:"U" long:"username" description:"The username for authentication" optional:"true" env:"ARCHETYPE_AUTH_USERNAME"`
+	Password         *string  `short:"P" long:"password" description:"The password for authentication" optional:"true" env:"ARCHETYPE_AUTH_PASSWORD"`
+	SSHKey           *string  `short:"K" long:"sshkey" description:"The SSH key for authentication" optional:"true" env:"ARCHETYPE_AUTH_SSH_KEY"`
+	UseDefaultSSHKey bool     `short:"D" long:"with-default-ssh-key" description:"Use default SSH key for authentication" optional:"true" env:"ARCHETYPE_AUTH_USE_DEFAULT_SSH_KEY"`
+	UseSSHAgent      bool     `short:"A" long:"with-ssh-agent" description:"Use SSH agent for authentication" optional:"true" env:"ARCHETYPE_AUTH_USE_SSH_AGENT"`
 }
 
 // HasAuthOptions checks whether any authentication options have been provided.

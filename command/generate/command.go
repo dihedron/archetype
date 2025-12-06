@@ -15,8 +15,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Apply is the command to apply an archetype to an existing repository.
-type Apply struct {
+// Generate is the command to generate a project based on an archetype.
+type Generate struct {
 	base.Command
 	// Settings is the path to the settings file to use for saturating the archetype variables.
 	Settings settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" required:"true"`
@@ -30,12 +30,13 @@ const (
 	DefaultFilePermissions      = 0644
 )
 
-// Execute is the main entry point for the Apply command.
-// It clones the archetype repository, validates the provided settings against the archetype's metadata,
-// and then processes the files in the repository, treating them as templates and executing them with the provided settings.
+// Execute is the main entry point for the Generate command.
+// It clones the archetype repository, validates the provided settings against
+// the archetype's metadata, and then processes the files in the repository,
+// treating them as templates and executing them with the provided settings.
 // The resulting files are written to the output directory.
-func (cmd *Apply) Execute(args []string) error {
-	slog.Info("executing Apply command")
+func (cmd *Generate) Execute(args []string) error {
+	slog.Info("executing Generate command")
 
 	if len(cmd.Exclude) > 0 && len(cmd.Include) > 0 {
 		slog.Warn("both exclude and include patterns specified; include patterns will take precedence")
