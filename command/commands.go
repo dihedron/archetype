@@ -2,9 +2,8 @@ package command
 
 import (
 	"github.com/dihedron/archetype/command/describe"
-	"github.com/dihedron/archetype/command/escape"
 	"github.com/dihedron/archetype/command/generate"
-	"github.com/dihedron/archetype/command/unescape"
+	"github.com/dihedron/archetype/command/prepare"
 	"github.com/dihedron/archetype/command/version"
 )
 
@@ -18,10 +17,10 @@ type Commands struct {
 	Describe describe.Describe `command:"describe" alias:"descr" alias:"d" description:"Describe the necessary settings"`
 	// Escape runs the Escape command which escapes all Golang-template directives in the files in the repository.
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
-	Escape escape.Escape `command:"escape" alias:"esc" alias:"e" description:"Escape all Golang-template directives in the files in the repository"`
+	Escape prepare.Escape `command:"escape" alias:"esc" alias:"e" description:"Escape all Golang-template directives in the given files"`
 	// Escape runs the Escape command which escapes all Golang-template directives in the files in the repository.
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
-	Unescape unescape.Unescape `command:"unescape" alias:"unesc" alias:"u" description:"Unescape all Golang-template directives in the files in the repository"`
+	Unescape prepare.Unescape `command:"unescape" alias:"unesc" alias:"u" description:"Unescape all Golang-template directives in the given files"`
 	// Version prints the application version information and exits.
 	//lint:ignore SA5008 go-flags uses multiple tags to define aliases and choices
 	Version version.Version `command:"version" alias:"ver" alias:"v" description:"Show the command version and exit"`
