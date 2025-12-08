@@ -35,10 +35,10 @@ func IsTextFile(filename string) (bool, error) {
 	}
 
 	slog.Debug("successfully read bytaes from file", "path", filename, "read", n)
-	return IsText(buffer[:n])
+	return IsText(buffer[:n]), nil
 }
 
-func IsText(buffer []byte) (bool, error) {
+func IsText(buffer []byte) bool {
 
 	n := len(buffer)
 
@@ -48,25 +48,25 @@ func IsText(buffer []byte) (bool, error) {
 
 	// Check for UTF-16 LE (Little Endian) - Hex: FF FE
 	if n >= 2 && buffer[0] == 0xFF && buffer[1] == 0xFE {
-		return true, nil
+		return true
 	}
 
 	// Check for UTF-16 BE (Big Endian) - Hex: FE FF
 	if n >= 2 && buffer[0] == 0xFE && buffer[1] == 0xFF {
-		return true, nil
+		return true
 	}
 
 	// Check for UTF-8 BOM - Hex: EF BB BF
 	// (Note: The NUL check below handles UTF-8 fine, but this is a quick optimization)
 	if n >= 3 && buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF {
-		return true, nil
+		return true
 	}
 
 	// 3. CHECK FOR NUL BYTES
 	// If it wasn't a BOM-marked UTF-16 file, and it contains a NUL byte,
 	// it is almost certainly binary (like an image or compiled app).
 	if bytes.IndexByte(buffer, 0) != -1 {
-		return false, nil
+		return false
 	}
 
 	// 4. MIME TYPE SNIFFING
@@ -75,7 +75,7 @@ func IsText(buffer []byte) (bool, error) {
 
 	// If it explicitly says "text/", it's text.
 	if strings.HasPrefix(contentType, "text/") {
-		return true, nil
+		return true
 	}
 
 	// 5. WHITELIST "APPLICATION" TEXT TYPES
@@ -90,7 +90,7 @@ func IsText(buffer []byte) (bool, error) {
 
 	for _, valid := range whitelistedTypes {
 		if strings.HasPrefix(contentType, valid) {
-			return true, nil
+			return true
 		}
 	}
 
@@ -99,11 +99,11 @@ func IsText(buffer []byte) (bool, error) {
 	// BUT we have passed the NUL check (Step 3), we assume it's text.
 	// This catches README files, source code, logs, etc.
 	if contentType == "application/octet-stream" {
-		return true, nil
+		return true
 	}
 
 	// Default to binary if it identified as something else (e.g., image/png)
-	return false, nil
+	return false
 }
 
 /*

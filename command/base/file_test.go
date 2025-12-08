@@ -26,7 +26,7 @@ func TestIsTextFile(t *testing.T) {
 func TestIsTextUTF16(t *testing.T) {
 	var buffer bytes.Buffer
 	buffer.Write([]byte{0xFF, 0xFE, 0x41, 0x00})
-	if isText, _ := IsText(buffer.Bytes()); !isText {
+	if isText := IsText(buffer.Bytes()); !isText {
 		t.Fatalf("invalid detection for UTF-16 byte array: expected %t got %t", true, isText)
 	}
 
