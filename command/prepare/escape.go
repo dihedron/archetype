@@ -5,33 +5,19 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/dihedron/archetype/command/base"
+	"github.com/dihedron/archetype/settings"
 )
 
 // Escape is the command to escape all Golang-template directives in a file.
 type Escape struct {
+	// Settings is the path to the settings file to use for saturating the archetype variables.
+	Settings *settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" optional:"true"`
 	// Directory is the path to the directory to use to store the "escaped" files.
 	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/escaped"`
 }
-
-// // Execute is the main entry point for the escape command.
-// // It escapes all Golang-template directives in the given files.
-// // The resulting files are written to the output directory.
-// func (cmd *Escape) ExecuteOld(args []string) error {
-// 	slog.Info("executing Escape command")
-
-// 	var errs error
-// 	for _, arg := range args {
-
-// 		if err := EscapeFile(arg, cmd.Directory); err != nil {
-// 			slog.Error("error escaping file", "file", arg, "error", err)
-// 			errs = errors.Join(errs, err)
-// 		}
-// 	}
-
-// 	return errs
-// }
 
 // Execute is the main entry point for the escape command.
 // It escapes all Golang-template directives in the given files.
@@ -70,7 +56,14 @@ func (cmd *Escape) Execute(args []string) error {
 		if base.IsText(data) {
 			slog.Debug("file is text", "file", filename)
 			data = ReplaceSelectedBrackets(data, RealBra, RealKet, SafeBra, SafeKet, func(s string) bool {
-				// TODO: implement the selection logic
+				if cmd.Settings != nil {
+					// do not escape parameters that are managed by the archetype
+					for k := range cmd.Settings.Parameters {
+						if strings.Contains(s, k) {
+							return false
+						}
+					}
+				}
 				return true
 			})
 		} else {

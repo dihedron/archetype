@@ -45,3 +45,41 @@ type Settings struct {
 func (s *Settings) UnmarshalFlag(value string) error {
 	return rawdata.UnmarshalInto("@"+value, s)
 }
+
+// func LoadSettings(filename string) (*Settings, error) {
+
+// 	// 1. read the settings file
+// 	data, err := os.ReadFile(filename) // just pass the file name
+// 	if err != nil {
+// 		slog.Error("cannot read settings file", "filename", filename, "error", err)
+// 		return nil, err
+// 	}
+
+// 	// 2. load and validate the parameters from the settings
+// 	context := map[string]any{}
+// 	fmt.Printf("---- %s ----\n", printf.Yellow("PARAMETERS"))
+// 	for key, value := range cmd.Settings.Parameters {
+// 		meta, ok := metadata.Parameters[key]
+// 		if !ok {
+// 			slog.Error("unsupported parameter in settings", "parameter", key)
+// 			return fmt.Errorf("unsupported parameter in settings: %s", key)
+// 		}
+// 		expected := strings.ReplaceAll(meta.Type, "interface {}", "any")
+// 		got := strings.ReplaceAll(fmt.Sprintf("%T", value), "interface {}", "any")
+// 		if expected != got {
+// 			slog.Error("parameter type mismatch", "parameter", key, "expected", meta.Type, "got", fmt.Sprintf("%T", value))
+// 			return fmt.Errorf("parameter type mismatch for '%s': expected %s, got %s", key, meta.Type, fmt.Sprintf("%T", value))
+// 		}
+// 		if value == nil && meta.Default != nil {
+// 			context[key] = meta.Default
+// 		} else {
+// 			context[key] = value
+// 		}
+// 		fmt.Printf("'%s' => '%s' (type: %s)\n",
+// 			printf.Green(key),
+// 			fmt.Sprintf("%v", printf.Green(context[key])),
+// 			printf.Blue(fmt.Sprintf("%T", value)),
+// 		)
+// 		//fmt.Sprintf("%T", printf.Blue(parameter.Value)))
+// 	}
+// 	fmt.Printf("---- %s ----\n", printf.Yellow("PARAMETERS"))

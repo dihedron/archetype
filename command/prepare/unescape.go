@@ -5,18 +5,22 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/dihedron/archetype/command/base"
+	"github.com/dihedron/archetype/settings"
 )
 
 // Unescape is the command to unescape all Golang-template directives in a file.
 type Unescape struct {
+	// Settings is the path to the settings file to use for saturating the archetype variables.
+	Settings *settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" optional:"true"`
 	// Directory is the path to the directory to use to store the "escaped" files.
 	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/escaped"`
 }
 
-// Execute is the main entry point for the escape command.
-// It escapes all Golang-template directives in the given files.
+// Execute is the main entry point for the unescape command.
+// It unescapes all Golang-template directives in the given files.
 // The resulting files are written to the output directory.
 func (cmd *Unescape) Execute(args []string) error {
 	slog.Info("executing Unescape command")
@@ -52,7 +56,14 @@ func (cmd *Unescape) Execute(args []string) error {
 		if base.IsText(data) {
 			slog.Debug("file is text", "file", filename)
 			data = ReplaceSelectedBrackets(data, SafeBra, SafeKet, RealBra, RealKet, func(s string) bool {
-				// TODO: implement the selection logic
+				if cmd.Settings != nil {
+					// do not escape parameters that are managed by the archetype
+					for k := range cmd.Settings.Parameters {
+						if strings.Contains(s, k) {
+							return false
+						}
+					}
+				}
 				return true
 			})
 		} else {
