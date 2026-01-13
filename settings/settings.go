@@ -30,6 +30,15 @@ type Metadata struct {
 	Parameters map[string]Parameter `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
 
+// UnmarshalFlag unmarshals a string value into the Metadata struct.
+// This method is used by the go-flags package to handle custom flag types.
+// It takes a string value, which is expected to be in a format that can be
+// unmarshalled by the rawdata.UnmarshalInto function (e.g., JSON, YAML), and
+// populates the fields of the Metadata struct accordingly.
+func (m *Metadata) UnmarshalFlag(value string) error {
+	return rawdata.UnmarshalInto("@"+value, m)
+}
+
 // Settings represents the user-provided settings, including the version
 // of the settings structure itself and the set of values for the parameters.
 type Settings struct {

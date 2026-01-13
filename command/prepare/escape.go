@@ -13,8 +13,8 @@ import (
 
 // Escape is the command to escape all Golang-template directives in a file.
 type Escape struct {
-	// Settings is the path to the settings file to use for saturating the archetype variables.
-	Settings *settings.Settings `short:"s" long:"settings" description:"The settings used to transform the archetype into an actual repository" optional:"true"`
+	// Metadata is the path to the metadata file describing the archetype.
+	Metadata *settings.Metadata `short:"m" long:"metadata" description:"The metadata used to describe the archetype" optional:"true"`
 	// Directory is the path to the directory to use to store the "escaped" files.
 	Directory string `short:"d" long:"directory" description:"The directory where the output files are stored" required:"true" default:".archetype/escaped"`
 }
@@ -56,9 +56,9 @@ func (cmd *Escape) Execute(args []string) error {
 		if base.IsText(data) {
 			slog.Debug("file is text", "file", filename)
 			data = ReplaceSelectedBrackets(data, RealBra, RealKet, SafeBra, SafeKet, func(s string) bool {
-				if cmd.Settings != nil {
+				if cmd.Metadata != nil {
 					// do not escape parameters that are managed by the archetype
-					for k := range cmd.Settings.Parameters {
+					for k := range cmd.Metadata.Parameters {
 						if strings.Contains(s, k) {
 							return false
 						}

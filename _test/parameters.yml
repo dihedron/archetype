@@ -1,6 +1,14 @@
 version: 1
+repository:
+    url: https://github.com/go-git/go-git.git
+    tag: latest
+    auth:
+        token: my-token
+        username: my-username
+        password: my-password
+        sshKey: my-ssh-key
 parameters:
-    - name: name 1
+    - name: name1
       description: Description 1
       type: bool
       default: default 1
